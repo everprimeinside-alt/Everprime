@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="icon" type="image/png" href="favicon.png">
+
+    <title>EverPrime | Elite Performance – სპორტული დანამატები საქართველოში</title>
+    <meta name="title" content="EverPrime | Elite Performance – სპორტული დანამატები საქართველოში">
+    <meta name="description" content="EverPrime - ექსტრემალური სპორტული დანამატების ბაზა. პროტეინი, კრეატინი, ამინომჟავები და ყველაფერი შენი შედეგისთვის. მიიღე მაქსიმალური ენერგია!">
+    <meta name="keywords" content="სპორტული დანამატები, პროტეინი, კრეატინი, ვარჯიში, დანამატები თბილისში, გეინერი, EverPrime Georgia, სპორტული კვება, bcaa, ვიტამინები, ვარჯიში თბილისი">
+    <link rel="canonical" href="https://everprime.ge/">
+    <meta property="og:site_name" content="EverPrime Georgia">
+    <meta property="og:locale" content="ka_GE">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#020202] text-[#e0e0e0] selection:bg-[#FF0000] overflow-x-hidden">
+<!-- Loading Screen -->
+<div id="custom-preloader">
+    <div class="loader-content">
+        <img src="logo.jpg" alt="Loading">
+    </div>
+</div>
+
+
+    <div class="scanlines"></div>
+    <div class="custom-cursor hidden md:block" id="cursor"></div>
+
+    <div id="details-modal-overlay" onclick="if(event.target === this) window.closeDetails()">
+        <div class="details-container" id="details-content">
+            </div>
+    </div>
+
+    <nav class="fixed top-0 w-full z-[100] border-b border-[#FF0000]/20 bg-black/80 backdrop-blur-md">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="#" class="text-2xl font-black italic tracking-tighter logo-glow">
+                EVER<span class="text-[#FF0000]">PRIME</span>
+            </a>
+            <div id="nav-user-area"></div>
+        </div>
+    </nav>
+
+    <div id="profile-modal" class="fixed inset-0 z-[200] bg-black/98 flex items-center justify-center p-6 hidden">
+        <div class="max-w-md w-full bg-[#050505] p-10 border-2 border-[#FF0000]/30 relative shadow-[0_0_50px_rgba(255,0,0,0.1)]">
+            <button onclick="window.toggleProfile()" class="absolute top-6 right-6 text-red-600 hover:text-white transition">✕</button>
+            <h2 class=" text-xl font-bold mb-8 italic text-red-600 tracking-tighter">მომხმარებლის მონაცემები</h2>
+            <div class="space-y-4">
+                <input id="u-phone-upd" type="text" placeholder="ტელეფონკს ნომერი" class="auth-input">
+                <input id="u-address-upd" type="text" placeholder="მისამართი" class="auth-input">
+                <button onclick="window.updateProfile()" class="w-full bg-[#FF0000] text-white py-2  text-[25px] font-bold uppercase italic hover:bg-white hover:text-black transition-all shadow-[0_0_15px_rgba(255,0,0,0.4)]">განახლება</button>
+                <button onclick="window.handleLogout()" class="w-full border border-red-900 text-red-900 py-2  text-[20px] uppercase mt-4 hover:border-red-600 hover:text-red-600 transition">გასვლა</button>
+            </div>
+        </div>
+    </div>
+
+  <section id="auth-section" class="fixed inset-0 z-[150] bg-[#020202]/95 flex items-center justify-center p-6 hidden">
+    <div class="max-w-md w-full bg-black p-10 border border-[#FF0000]/20 relative">
+        <!-- დახურვის ღილაკი -->
+        <button onclick="document.getElementById('auth-section').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+<div id="login-form">
+                <h2 class=" text-2xl font-bold mb-8 italic text-red-600 uppercase tracking-tighter"><span style="color:white">შესვლა </span>პრაიმში</h2>
+                <input id="l-email" type="email" placeholder="ელ-ფოსტა" class="auth-input">
+                <input id="l-pass" type="password" placeholder="პაროლი" class="auth-input">
+                <button onclick="window.handleLogin()" class="w-full bg-[#FF0000] py-2  text-[25px] font-bold uppercase italic hover:bg-white hover:text-black transition-all">შესვლა</button>
+                <p class="mt-6 text-[15px] uppercase text-gray-600 text-center tracking-widest font-bold">ახალი ხარ? <button onclick="window.toggleAuth()" class="text-red-600 underline">რეგისტრაცია</button></p>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2 class=" text-2xl font-bold mb-8 italic text-white uppercase">რეგისტრაცია</h2>
+                <input id="r-email" type="email" placeholder="ელ-ფოსტა" class="auth-input">
+                <input id="r-pass" type="password" placeholder="პაროლი" class="auth-input">
+                <input id="r-phone" type="text" placeholder="ტელეფონის ნომერი" class="auth-input">
+                <input id="r-address" type="text" placeholder="მისამართი" class="auth-input">
+                <button onclick="window.handleRegister()" class="w-full bg-white text-black py-2  text-[25px] font-bold uppercase italic hover:bg-red-600 hover:text-white transition-all">რეგისტრაცია</button>
+                <p class="mt-6 text-[15px] uppercase text-gray-600 text-center tracking-widest font-bold">რეგისტრილებური ხარ? <button onclick="window.toggleAuth()" class="text-red-600 underline">შესვლა</button></p>
+            </div>
+        </div>
+    </section>
+
+    <main id="main-content" >
+        <section class="relative h-screen flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#020202] via-transparent to-[#020202] z-10"></div>
+                <img src="https://i.postimg.cc/gkdSXXRs/hq720.jpg" class="w-full h-full object-cover grayscale opacity-20 scale-110 hero-zoom">
+            </div>
+            <div class="container mx-auto px-6 relative z-20">
+              <strong> <div class="max-w-4xl">
+                    <p class=" text-red-600 text-[11px] tracking-[0.5em] mb-4 uppercase font-bold italic reveal-left">რეჟიმი: პრაიმი</p>
+                    <h1 class=" text-7xl md:text-[130px] font-black leading-[0.85] italic uppercase tracking-tighter mb-10 reveal-left">
+                        იყავი <br><span class="text-outline">მუდამ</span><br><span class="text-[#FF0000] glow-text">პრაიმში.</span>
+                    </h1>
+                    <div class="flex flex-wrap gap-6 reveal-left">
+                        <a href="#shop" class="bg-[#FF0000] text-white px-10 py-2  text-[25px] font-bold uppercase italic hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_20px_rgba(255,0,0,0.3)]">პროდუქტი</a>
+                        <div class="flex items-center gap-4 border border-white/10 px-8 py-4 backdrop-blur-sm">
+                            <span class="w-2 h-2 bg-red-600 rounded-full animate-ping"></span>
+                            <span class="text-[9px]  uppercase tracking-widest">პრაიმ რეჟიმი</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+<section id="shop" class="py-40 bg-black">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
+            <div class="reveal-left">
+                <h2 class="text-5xl font-black italic uppercase leading-none border-l-8 border-red-600 pl-6">
+                    მუდამ <span class="text-red-600">პრაიმში</span>
+                </h2>
+                <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.5em] font-bold">საუკეთესო ენერგია და შედეგი</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto reveal-up">
+                <input type="text" id="search-input" oninput="window.filterProducts()" placeholder="პროდუქტის ძიება..." class="bg-[#050505] border border-white/5 p-4 text-[15px] outline-none focus:border-red-600 w-full md:w-80 text-white transition-all">
+                <select id="sort-select" onchange="window.filterProducts()" class="bg-[#050505] border border-white/5 p-4 text-[15px] text-white cursor-pointer hover:border-red-600 uppercase">
+                    <option value="default">სორტირება</option>
+                    <option value="low">ფასი ზრდადობით</option>
+                    <option value="high">ფასი კლებადობით</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- კატეგორიების დინამიური ღილაკები -->
+        <div id="category-container" class="flex flex-wrap gap-3 mb-16 reveal-up">
+            <button onclick="window.setCategory('all')" class="cat-btn active">ყველა</button>
+            <!-- აქ ჩაიწერება კატეგორიები ბაზიდან -->
+        </div>
+
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- პროდუქტები ჩაიტვირთება აქ -->
+        </div>
+
+        <div id="pagination-bottom" class="flex justify-center flex-wrap gap-2 mt-20"></div>
+    </div>
+</section>
+
+
+        <footer class="bg-[#020202] py-20 border-t-2 border-red-600">
+            <div class="container mx-auto px-6 text-center md:text-left">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-12">
+                    <div>
+                        <h3 class=" text-2xl font-black italic mb-2 tracking-tighter">EVER<span class="text-[#FF0000]">PRIME</span></h3>
+                        <p class="text-[8px] text-gray-700 tracking-[0.6em] uppercase italic font-bold">ექსტრემალური დანამატების ბაზა</p>
+                    </div>
+                  <div class="flex gap-12 text-[10px] text-gray-400 uppercase italic font-bold">
+    <a href="#" class="hover:text-red-600 transition">კონტაქტი</a>
+    <a href="legal.html#terms" class="hover:text-red-600 transition">წესები</a>
+    <a href="legal.html#privacy" class="hover:text-red-600 transition">კონფიდენციალურობა</a>
+</div>
+
+                </div>
+                <div class="mt-16 border-t border-white/5 pt-10">
+                    <p class="text-[8px] text-gray-800 tracking-[1em] uppercase">შექმნილი დომინირებისთვი. EVERPRIME PRIME ARSENAL 2026.</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+<div id="prime-popup" class="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-sm hidden items-center justify-center p-6">
+    <div class="max-w-sm w-full bg-[#080808] border-2 border-red-600 p-8 shadow-[0_0_50px_rgba(255,0,0,0.2)] relative">
+        <div class="absolute -top-3 -left-3 bg-red-600 text-black px-2 py-1 font-bold text-[10px] uppercase italic">მესიჯი</div>
+        <p id="popup-text" class=" text-[12px] text-white uppercase mb-8 leading-relaxed tracking-tighter"></p>
+        <div id="popup-actions" class="flex flex-col gap-3">
+            <button id="popup-confirm" class="buy-btn !bg-red-600 !text-white">დასტური</button>
+            <button id="popup-close" class="details-btn">დახურვა</button>
+        </div>
+    </div>
+</div>
+<style>
+    
+</style>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

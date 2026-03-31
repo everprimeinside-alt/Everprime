@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>იურიდიული ინფორმაცია | EverPrime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#020202] text-[#e0e0e0] selection:bg-[#FF0000] overflow-x-hidden">
+    
+    <div class="scanlines"></div>
+
+    <!-- Header -->
+    <nav class="fixed top-0 w-full z-[100] border-b border-[#FF0000]/20 bg-black/80 backdrop-blur-md">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black italic tracking-tighter logo-glow uppercase">
+                EVER<span class="text-[#FF0000]">PRIME</span>
+            </a>
+            <a href="index.html" class="nav-btn uppercase">მთავარი გვერდი</a>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="container mx-auto px-6 max-w-5xl">
+            
+            <!-- გვერდის სათაური -->
+            <div class="mb-16 reveal-left">
+                <h1 class="text-4xl md:text-7xl font-black italic uppercase leading-none border-l-8 border-red-600 pl-6">
+                    სამართლებრივი <br><span class="text-red-600">რეგულაციები</span>
+                </h1>
+                <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.5em] font-bold">ბოლო განახლება: 2026 წლის მარტი</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- მარცხენა ნავიგაცია (Desktop-ისთვის) -->
+                <aside class="lg:col-span-3 hidden lg:block sticky top-32 h-fit">
+                    <ul class="space-y-4 border-l border-white/5 pl-4 uppercase text-[11px] tracking-widest font-bold italic">
+                        <li><a href="#terms" class="hover:text-red-600 transition block">მოხმარების წესები</a></li>
+                        <li><a href="#privacy" class="hover:text-red-600 transition block">კონფიდენციალურობა</a></li>
+                        <li><a href="#delivery" class="hover:text-red-600 transition block">მიწოდება</a></li>
+                    </ul>
+                </aside>
+
+                <!-- კონტენტი -->
+                <div class="lg:col-span-9 space-y-20">
+                    
+                    <!-- მოხმარების წესები -->
+                    <section id="terms" class="reveal-up">
+                        <h2 class="text-2xl font-black italic uppercase text-white mb-8 flex items-center gap-3">
+                            <span class="w-8 h-[2px] bg-red-600"></span> მოხმარების წესები
+                        </h2>
+                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed italic">
+                            <p>წინამდებარე დოკუმენტი წარმოადგენს საჯარო ოფერტას EverPrime-სა (შემდგომში "გამყიდველი") და ფიზიკურ პირს (შემდგომში "მომხმარებელი") შორის.</p>
+                            
+                            <div class="bg-white/5 p-6 border-l-2 border-red-600/30">
+                                <h3 class="text-white font-bold mb-2 uppercase">1.1 ხელშეკრულების საგანი</h3>
+                                <p>გამყიდველი უზრუნველყოფს სპორტული დანამატებისა და აქსესუარების რეალიზაციას ვებ-გვერდის მეშვეობით, ხოლო მომხმარებელი იღებს ვალდებულებას გადაიხადოს ნივთის ღირებულება და დაიცვას შენახვის პირობები.</p>
+                            </div>
+
+                            <div class="bg-white/5 p-6 border-l-2 border-red-600/30">
+                                <h3 class="text-white font-bold mb-2 uppercase">1.2 პროდუქციის ხარისხი</h3>
+                                <p>EverPrime პასუხისმგებელია პროდუქციის ორიგინალურობაზე. მომხმარებელი ვალდებულია პროდუქტის გამოყენებამდე გაეცნოს შემადგენლობას ალერგიული რეაქციების თავიდან ასაცილებლად.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- კონფიდენციალურობა -->
+                    <section id="privacy" class="reveal-up">
+                        <h2 class="text-2xl font-black italic uppercase text-white mb-8 flex items-center gap-3">
+                            <span class="w-8 h-[2px] bg-red-600"></span> კონფიდენციალურობის პოლიტიკა
+                        </h2>
+                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed italic">
+                            <p>ჩვენი პრიორიტეტია მომხმარებლის პერსონალურ მონაცემთა დაცვა "პერსონალურ მონაცემთა დაცვის შესახებ" საქართველოს კანონის შესაბამისად.</p>
+                            
+                            <ul class="list-none space-y-4">
+                                <li class="flex gap-4">
+                                    <span class="text-red-600">01.</span>
+                                    <span>ვაგროვებთ მხოლოდ იმ ინფორმაციას (სახელი, ნომერი, მისამართი), რომელიც კრიტიკულია ლოჯისტიკური ოპერაციებისთვის.</span>
+                                </li>
+                                <li class="flex gap-4">
+                                    <span class="text-red-600">02.</span>
+                                    <span>მონაცემები ინახება დაშიფრულ Firebase Cloud გარემოში, სადაც წვდომა შეზღუდულია ავტორიზებული პერსონალისთვის.</span>
+                                </li>
+                                <li class="flex gap-4">
+                                    <span class="text-red-600">03.</span>
+                                    <span>მომხმარებელს აქვს უფლება ნებისმიერ დროს მოითხოვოს საკუთარი პროფილის სრული დეაქტივაცია და მონაცემთა წაშლა.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <!-- მიწოდება და დაბრუნება -->
+                    <section id="delivery" class="reveal-up">
+                        <h2 class="text-2xl font-black italic uppercase text-white mb-8 flex items-center gap-3">
+                            <span class="w-8 h-[2px] bg-red-600"></span> მიწოდება და დაბრუნება
+                        </h2>
+                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed italic">
+                            <p>მიწოდება ხორციელდება 24-48 საათის განმავლობაში. პროდუქტის დაბრუნება შესაძლებელია მხოლოდ იმ შემთხვევაში, თუ დარღვეულია მისი ჰერმეტულობა (შეფუთვა) ტრანსპორტირებისას.</p>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#020202] py-20 border-t-2 border-red-600">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-2xl font-black italic mb-2 tracking-tighter uppercase">EVER<span class="text-[#FF0000]">PRIME</span></h3>
+            <p class="text-[8px] text-gray-800 tracking-[1em] uppercase mt-10">შექმნილი დომინირებისთვი. LEGAL DEPT 2026.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

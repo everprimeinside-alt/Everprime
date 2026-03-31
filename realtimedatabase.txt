@@ -1,0 +1,14 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "online_users": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "orders_live": {
+      ".read": "auth != null", 
+      ".write": "auth != null"
+    }
+  }
+}

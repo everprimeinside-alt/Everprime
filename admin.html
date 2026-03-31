@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EverPrime | Admin Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/syncopate');
+        body { font-family: 'BPG Phone Sans Bold', sans-serif; background: #050505; color: white; overflow-x: hidden; }
+        .font-sync { font-family: 'Syncopate', sans-serif; }
+        #alarm-overlay { display: none; }
+        #alarm-overlay.active { display: flex; animation: bg-flash 0.5s infinite alternate; }
+        @keyframes bg-flash {
+            from { background-color: rgba(220, 38, 38, 0.95); }
+            to { background-color: rgba(153, 27, 27, 0.98); }
+        }
+        .admin-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ff0000; }
+        
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .nav-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
+        
+        input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        input:focus, textarea:focus, select:focus { border-color: #dc2626 !important; outline: none; }
+        option { background: #050505; color: white; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <!-- Alarm Overlay for New Orders -->
+    <div id="alarm-overlay" class="fixed inset-0 z-[9999] flex-col items-center justify-center text-center p-6 backdrop-blur-xl">
+        <div class="mb-6 animate-bounce"><span class="material-icons text-9xl text-white">warning</span></div>
+        <h2 class="font-sync text-5xl md:text-7xl font-black italic mb-8 text-white uppercase tracking-tighter">New Order</h2>
+        <div id="alarm-details" class="bg-black p-10 border-4 border-white text-left max-w-2xl w-full"></div>
+        <button onclick="document.getElementById('alarm-overlay').classList.remove('active')" class="mt-8 bg-white text-black px-8 py-3 font-bold uppercase italic">გათიშვა</button>
+    </div>
+
+    <header class="flex flex-col md:flex-row justify-between items-center border-b border-red-600 pb-8 mb-8 gap-6">
+        <div>
+            <h1 class="font-sync text-3xl font-black italic uppercase tracking-tighter">Ever<span class="text-red-600">Prime</span></h1>
+            <p class="text-[10px] uppercase tracking-[0.5em] opacity-50">Control Center v2.6</p>
+        </div>
+        <div id="user-stats" class="text-green-500 text-xs font-bold uppercase italic animate-pulse">კავშირი...</div>
+    </header>
+
+    <nav class="flex flex-wrap gap-2 mb-10">
+        <button onclick="showSection('orders-sec', this)" class="nav-btn active border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">შეკვეთები</button>
+        <button onclick="showSection('users-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">მომხმარებლები</button>
+        <button onclick="showSection('upload-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პროდუქტის დამატება</button>
+        <button onclick="showSection('delete-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">ინვენტარი</button>
+    </nav>
+
+    <main>
+        <!-- ORDERS SECTION -->
+        <section id="orders-sec" class="admin-section active">
+            <h2 class="font-sync text-xs text-red-600 mb-6 uppercase tracking-widest italic">Recent Orders</h2>
+            <div id="orders-list" class="space-y-4 max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar"></div>
+        </section>
+
+        <!-- USERS SECTION -->
+        <section id="users-sec" class="admin-section">
+            <div class="mb-6">
+                <input id="user-search" type="text" placeholder="მოძებნე მომხმარებელი (EMAIL, TEL)..." 
+                       class="w-full p-4 text-sm uppercase tracking-widest">
+            </div>
+            <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 custom-scrollbar overflow-y-auto max-h-[60vh]"></div>
+        </section>
+
+        <!-- UPLOAD SECTION -->
+        <section id="upload-sec" class="admin-section">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                <div class="admin-card p-8 border-l-4 border-red-600">
+                    <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Add New Product</h2>
+                    <div class="grid grid-cols-1 gap-5">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">დასახელება</label>
+                            <input id="p-name" type="text" placeholder="მაგ: Whey Protein" class="w-full p-3 text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">ფასი (₾)</label>
+                                <input id="p-price" type="number" placeholder="0.00" class="w-full p-3 text-sm">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">კატეგორია</label>
+                                <select id="p-category" class="w-full p-3 text-sm"></select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">სურათის ლინკი (URL)</label>
+                            <input id="p-image" type="text" placeholder="https://..." class="w-full p-3 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">აღწერა</label>
+                            <textarea id="p-desc" placeholder="პროდუქტის დეტალები..." class="w-full p-3 text-sm h-32 resize-none"></textarea>
+                        </div>
+                        <button onclick="window.uploadProduct()" class="bg-red-600 p-4 font-black uppercase italic hover:bg-red-700 transition text-white mt-4">დამატება მაღაზიაში</button>
+                    </div>
+                </div>
+
+                <div class="admin-card p-8 border-l-4 border-blue-600">
+                    <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Manage Categories</h2>
+                    <div class="flex gap-2 mb-6">
+                        <input id="new-cat-name" type="text" placeholder="ახალი კატეგორია..." class="flex-1 p-3 text-sm">
+                        <button onclick="window.addCategory()" class="bg-blue-600 px-6 font-bold uppercase text-xs italic">დამატება</button>
+                    </div>
+                    <div id="categories-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INVENTORY SECTION -->
+        <section id="delete-sec" class="admin-section">
+            <h2 class="font-sync text-xs text-gray-500 mb-6 uppercase tracking-widest italic">Inventory & Stock Status</h2>
+            <div id="inventory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, doc, getDoc, deleteDoc, orderBy, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getDatabase, ref, onValue, onChildAdded, limitToLast, query as rQuery } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
+  authDomain: "evverprrime.firebaseapp.com",
+  databaseURL: "https://evverprrime-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "evverprrime",
+  storageBucket: "evverprrime.firebasestorage.app",
+  messagingSenderId: "738169841658",
+  appId: "1:738169841658:web:5de9ecdda0f0f68f4ae643"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
+
+        let allUsers = [];
+
+        window.showSection = (id, btn) => {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        };
+
+        window.delDoc = async (coll, id) => {
+            if(confirm(`ნამდვილად გსურთ წაშლა?`)) {
+                try { await deleteDoc(doc(db, coll, id)); } catch (e) { alert(e.message); }
+            }
+        };
+
+        // --- PRODUCT UPLOAD WITH STOCK ---
+        window.uploadProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const image = document.getElementById('p-image').value;
+            const desc = document.getElementById('p-desc').value;
+            const category = document.getElementById('p-category').value;
+            
+            if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
+            
+            try {
+                await addDoc(collection(db, "products"), { 
+                    name, price: Number(price), image, desc, category, 
+                    inStock: true, // Default status
+                    createdAt: Date.now() 
+                });
+                alert("პროდუქტი წარმატებით დაემატა!");
+                ['p-name', 'p-price', 'p-image', 'p-desc'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) { alert(e.message); }
+        };
+
+        // --- TOGGLE STOCK STATUS ---
+        window.toggleStock = async (id, currentStatus) => {
+            try {
+                await setDoc(doc(db, "products", id), { inStock: !currentStatus }, { merge: true });
+            } catch (e) { console.error("Error updating stock:", e); }
+        };
+
+        window.addCategory = async () => {
+            const name = document.getElementById('new-cat-name').value.trim();
+            if(!name) return;
+            try { await addDoc(collection(db, "categories"), { name }); document.getElementById('new-cat-name').value = ''; } catch (e) { alert(e.message); }
+        };
+
+        function loadAdminData() {
+            onSnapshot(collection(db, "categories"), snap => {
+                const select = document.getElementById('p-category');
+                const list = document.getElementById('categories-list');
+                select.innerHTML = ''; list.innerHTML = '';
+                snap.forEach(d => {
+                    const cat = d.data().name;
+                    select.innerHTML += `<option value="${cat}">${cat}</option>`;
+                    list.innerHTML += `<div class="flex justify-between items-center p-2 bg-white/5 border border-white/5"><span class="text-xs uppercase">${cat}</span><button onclick="window.delDoc('categories', '${d.id}')" class="text-red-600 material-icons text-sm">delete</button></div>`;
+                });
+            });
+
+            onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
+                const list = document.getElementById('orders-list');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const o = d.data();
+                    list.innerHTML += `
+                        <div class="p-4 bg-white/5 border-l-4 border-red-600 mb-2 flex justify-between items-center group">
+                            <div><p class="text-white font-bold uppercase text-sm">${o.product}</p><p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p></div>
+                            <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
+                        </div>`;
+                });
+            });
+
+            // UPDATED INVENTORY WITH STOCK TOGGLE
+            onSnapshot(collection(db, "products"), snap => {
+                const list = document.getElementById('inventory-list');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    const inStock = p.inStock !== false;
+                    list.innerHTML += `
+                        <div class="admin-card p-4 flex flex-col gap-3 border border-white/5">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <img src="${p.image || ''}" class="w-10 h-10 object-cover border border-white/10">
+                                    <div><p class="text-xs font-bold text-white uppercase">${p.name}</p><p class="text-[10px] text-red-500">${p.price}₾</p></div>
+                                </div>
+                                <button onclick="window.delDoc('products', '${d.id}')" class="text-red-600 material-icons text-sm opacity-50 hover:opacity-100">delete</button>
+                            </div>
+                            <button onclick="window.toggleStock('${d.id}', ${inStock})" 
+                                class="w-full py-2 text-[9px] font-bold uppercase border transition-all ${inStock ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-gray-600 text-gray-600 hover:bg-gray-600/10'}">
+                                ${inStock ? '● მარაგშია' : '○ ამოწურულია'}
+                            </button>
+                        </div>`;
+                });
+            });
+
+            onChildAdded(rQuery(ref(rtdb, 'orders_live'), limitToLast(1)), (snap) => {
+                const order = snap.val();
+                if (order && (Date.now() - order.timestamp < 10000)) triggerAlarm(order);
+            });
+
+            onValue(ref(rtdb, 'online_users'), s => {
+                document.getElementById('user-stats').innerHTML = `● LIVE USERS: ${s.exists() ? Object.keys(s.val()).length : 0}`;
+            });
+
+            onSnapshot(collection(db, "users"), snap => {
+                allUsers = [];
+                snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                renderUsers(allUsers);
+            });
+        }
+
+        function triggerAlarm(data) {
+            const overlay = document.getElementById('alarm-overlay');
+            document.getElementById('alarm-details').innerHTML = `<p class="text-white text-xl uppercase font-bold">პროდუქტი: ${data.product}</p><p class="text-green-500 font-mono italic">მისამართი: ${data.address}</p>`;
+            overlay.classList.add('active');
+            new Audio('https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3').play();
+        }
+
+        function renderUsers(usersArray) {
+            const list = document.getElementById('users-list');
+            list.innerHTML = '';
+            usersArray.forEach(u => {
+                if(u.role === 'admin') return;
+                list.innerHTML += `<div class="admin-card p-4 border-t-2 border-blue-600 relative"><h4 class="text-white font-bold text-xs truncate mb-1">${u.email}</h4><p class="text-[10px] text-gray-500 font-mono italic">${u.phone || 'N/A'}</p><button onclick="window.delDoc('users', '${u.id}')" class="absolute top-4 right-4 text-gray-800 hover:text-red-600"><span class="material-icons text-sm">person_remove</span></button></div>`;
+            });
+        }
+
+        document.getElementById('user-search').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            renderUsers(allUsers.filter(u => u.email?.toLowerCase().includes(val) || u.phone?.includes(val)));
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const u = await getDoc(doc(db, "users", user.uid));
+                if (u.exists() && u.data().role === 'admin') loadAdminData();
+                else window.location.href = "index.html";
+            } else window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
