@@ -270,7 +270,7 @@ window.updateProfile = async () => {
             phone: document.getElementById('u-phone-upd').value,
             address: document.getElementById('u-address-upd').value
         }, { merge: true });
-        window.primeShow("პროფილი განახლდა!");
+        window.primeShow("პროფილი განახლებულია!");
         window.toggleProfile();
     }
 };
