@@ -331,3 +331,32 @@ document.addEventListener("DOMContentLoaded", function() {
 
     }, displayTime);
 });
+let lastScrollTop = 0;
+const sliderContainer = document.getElementById('main-slider-container');
+
+window.addEventListener('scroll', function() {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    // თუ გვერდის თავში ვართ, ყოველთვის გამოჩნდეს
+    if (scrollTop <= 100) {
+        sliderContainer.classList.remove('slider-hidden');
+    } 
+    // თუ დაბლა ვსქროლავთ - დაიმალოს
+    else if (scrollTop > lastScrollTop) {
+        sliderContainer.classList.add('slider-hidden');
+    } 
+    // თუ ოდნავ მაინც ზემოთ ავწიეთ - გამოჩნდეს
+    else {
+        sliderContainer.classList.remove('slider-hidden');
+    }
+    
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // მობილურზე ნეგატიური სქროლის პრევენცია
+}, false);
+
+// ისრების სქროლის ფუნქცია (უცვლელი)
+window.scrollSlide = (distance) => {
+    document.getElementById('slider-list').scrollBy({
+        left: distance,
+        behavior: 'smooth'
+    });
+};
