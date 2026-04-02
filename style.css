@@ -172,3 +172,70 @@ textarea:focus {
     opacity: 0 !important;
     visibility: hidden !important;
 }
+.prime-slider-wrapper {
+    position: fixed;
+    top: 80px; /* შენი ჰედერის სიმაღლე */
+    left: 0;
+    width: 100%;
+    background: rgba(2, 2, 2, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 0, 0, 0.1);
+    z-index: 90;
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    /* ანიმაციისთვის */
+    transition: transform 0.4s ease-in-out, opacity 0.3s ease-in-out;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* კლასი გაქრობისთვის */
+.slider-hidden {
+    transform: translateY(-100%); /* აიტანს ზემოთ ჰედერის უკან */
+    opacity: 0;
+    pointer-events: none; /* გაქრობისას ღილაკებზე დაჭერა რომ გამოირიცხოს */
+}
+
+/* მინიმალისტური ისრები და ლინკები (როგორც ადრე) */
+.scroll-arrow {
+    position: absolute;
+    background: none;
+    border: none;
+    color: rgba(255, 0, 0, 0.4);
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 5;
+    transition: 0.3s;
+    padding: 10px;
+}
+.scroll-arrow:hover { color: #FF0000; text-shadow: 0 0 10px #FF0000; }
+.arrow-left { left: 10px; }
+.arrow-right { right: 10px; }
+
+.prime-scroll-area {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    white-space: nowrap;
+    padding: 0 50px;
+    gap: 12px;
+    scrollbar-width: none;
+}
+.prime-scroll-area::-webkit-scrollbar { display: none; }
+
+.prime-slider-link {
+    text-decoration: none;
+    padding: 8px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    color: #666;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-style: italic;
+    clip-path: polygon(10% 0, 100% 0, 100% 75%, 90% 100%, 0 100%, 0 25%);
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+.prime-slider-link.active { border-color: #FF0000; color: #fff; background: rgba(255, 0, 0, 0.1); }
