@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ჩვენს შესახებ | EverPrime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .about-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            clip-path: polygon(3% 0, 100% 0, 100% 97%, 97% 100%, 0 100%, 0 3%);
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .about-card:hover {
+            border-color: rgba(255, 0, 0, 0.3);
+            background: rgba(255, 0, 0, 0.02);
+        }
+        
+        #main-nav {
+            transition: transform 0.4s ease, opacity 0.3s ease;
+        }
+        .nav-hidden { transform: translateY(-100%); opacity: 0; }
+
+        .prime-tag {
+            color: #FF0000;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-[#020202] text-[#e0e0e0] selection:bg-[#FF0000] overflow-x-hidden">
+    
+    <div class="scanlines"></div>
+
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] border-b border-[#FF0000]/10 bg-black/80 backdrop-blur-md">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black italic tracking-tighter uppercase">
+                EVER<span class="text-[#FF0000]">PRIME</span>
+            </a>
+            <a href="index.html" class="nav-btn text-[10px] uppercase border border-white/10 px-6 py-2 hover:bg-red-600 transition">მთავარი</a>
+        </div>
+    </nav>
+
+    <main class="pt-40 pb-32">
+        <div class="container mx-auto px-6">
+            
+            <div class="max-w-4xl mb-24 reveal-left">
+                <span class="prime-tag">ESTABLISHED 2026 // RUSTAVI-TBILISI</span>
+                <h1 class="text-5xl md:text-8xl font-black italic uppercase leading-[0.9] tracking-tighter">
+                    ჩვენი <br><span class="text-red-600">ფილოსოფია</span>
+                </h1>
+                <p class="text-gray-600 text-[9px] mt-6 uppercase tracking-[0.4em] font-bold italic">სრული ავთენტურობა. პირდაპირი კონტაქტი.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+                
+                <aside class="lg:col-span-3 hidden lg:block sticky top-32 h-fit">
+                    <nav class="space-y-6">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">ნავიგაცია</p>
+                        <ul class="space-y-4 uppercase text-[12px] tracking-tighter font-bold italic">
+                            <li><a href="#origin" class="text-gray-500 hover:text-red-600 transition flex items-center gap-2"> <span class="w-4 h-[1px] bg-red-600"></span> რატომ შევიქმენით</a></li>
+                            <li><a href="#mission" class="text-gray-500 hover:text-red-600 transition flex items-center gap-2"> <span class="w-4 h-[1px] bg-red-600"></span> ჩვენი მისია</a></li>
+                            <li><a href="#logistics" class="text-gray-500 hover:text-red-600 transition flex items-center gap-2"> <span class="w-4 h-[1px] bg-red-600"></span> ლოჯისტიკა</a></li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <div class="lg:col-span-9 space-y-12">
+                    
+                    <section id="origin" class="about-card">
+                        <span class="text-red-600 font-black text-xs uppercase mb-4 block tracking-widest">ORIGIN_DATA</span>
+                        <h2 class="text-3xl font-black italic uppercase text-white mb-8">ავთენტურობის სტანდარტი</h2>
+                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed italic">
+                            <p>EverPrime დაარსდა ერთი კონკრეტული მიზნით: ბაზარზე სრული ავთენტურობით გაგვეტანა პროდუქცია. ჩვენს მომხმარებელს ყოველთვის ეცოდინება სიმართლე — იქნება ეს დაბალეფექტური თუ მაღალეფექტური პროდუქტი, ჩვენ მას წარვადგენთ ზუსტად ისეთს, როგორიც არის.</p>
+                            
+                            <div class="grid md:grid-cols-2 gap-6 mt-10">
+                                <div class="p-6 bg-white/5 border-l border-red-600">
+                                    <h3 class="text-white font-bold mb-3 uppercase text-xs">გამჭვირვალობა</h3>
+                                    <p class="text-xs">არანაირი დამალული შემადგენლობა. თქვენ ყოველთვის გაქვთ სრული ინფორმაცია იმის შესახებ, თუ რას იღებთ.</p>
+                                </div>
+                                <div class="p-6 bg-white/5 border-l border-red-600">
+                                    <h3 class="text-white font-bold mb-3 uppercase text-xs">საუკეთესო ფასი</h3>
+                                    <p class="text-xs">ჩვენი მიზანია, მომხმარებელმა მიიღოს ავთენტური პროდუქცია ბაზარზე არსებული შეძლებისდაგვარად საუკეთესო ფასებით.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="mission" class="about-card">
+                        <span class="text-red-600 font-black text-xs uppercase mb-4 block tracking-widest">CORE_TEAM</span>
+                        <h2 class="text-3xl font-black italic uppercase text-white mb-8">ვინ დგას EverPrime-ის უკან?</h2>
+                        <div class="space-y-6 text-gray-400 text-sm leading-relaxed italic">
+                            <p>ბრენდის უკან დგას გუნდი, რომელსაც ამოძრავებს ერთიანი ხედვა: ქართველ სპორტსმენს ჰქონდეს წვდომა იმაზე, რაც მას რეალურად სჭირდება პროგრესისთვის.</p>
+                            <p>ჩვენ ვართ პირდაპირები და ვინარჩუნებთ უშუალო კონტაქტს თითოეულ მომხმარებელთან. ჩვენი დაპირება მარტივია — მოგცეთ შესაძლებლობა, იყოთ მუდამ პრაიმში.</p>
+                        </div>
+                    </section>
+
+                    <section id="logistics" class="about-card">
+                        <span class="text-red-600 font-black text-xs uppercase mb-4 block tracking-widest">DEPLOYMENT_ZONE</span>
+                        <h2 class="text-3xl font-black italic uppercase text-white mb-8">ლოჯისტიკა და მომავალი</h2>
+                        <div class="text-gray-400 text-sm leading-relaxed italic">
+                            <p>ამ ეტაპზე EverPrime ფუნქციონირებს როგორც ონლაინ მაღაზია და ჩვენი ლოჯისტიკური ქსელი სრულად ფარავს <strong>თბილისსა და რუსთავს</strong>.</p>
+                            <div class="mt-6 p-4 border border-white/5 bg-white/5 italic">
+                                <p class="text-xs text-red-600 font-bold mb-2 uppercase">სტრატეგიული გეგმა:</p>
+                                <p class="text-xs">ჩვენ აქტიურად ვმუშაობთ გაფართოებაზე და უახლოეს მომავალში ვგეგმავთ ფიზიკური მაღაზიის გახსნას, რათა ჩვენი სერვისი კიდევ უფრო ხელმისაწვდომი გახდეს.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-[#020202] py-20 border-t border-white/5">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-2xl font-black italic mb-2 tracking-tighter uppercase">EVER<span class="text-[#FF0000]">PRIME</span></h3>
+            <p class="text-[8px] text-gray-700 tracking-[1em] uppercase mt-12">ALWAYS IN PRIME // 2026.</p>
+        </div>
+    </footer>
+
+    <script>
+        let lastScrollTop = 0;
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', function() {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                nav.classList.add('nav-hidden');
+            } else {
+                nav.classList.remove('nav-hidden');
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+    </script>
+
+</body>
+</html>
