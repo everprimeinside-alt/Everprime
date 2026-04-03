@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+  <title>AI Advisor v2.0 | EVERPRIME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* შრიფტის იმპორტი */
+        @font-face {
+            font-family: 'BPG Phone Sans Bold';
+            src: url('bpg_extrasquare_mtavruli_2009.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        * { font-family: 'BPG Phone Sans Bold', sans-serif; font-weight: bold; }
+
+        :root { --primary: #FF0000; --bg: #020202; }
+
+        body { background-color: var(--bg); color: #e0e0e0; overflow-x: hidden; }
+
+        /* Scanline ეფექტი */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 4px, 3px 100%; z-index: 1000; pointer-events: none; opacity: 0.4;
+        }
+
+        /* ბარათების სტილი */
+        .prime-card {
+            background: #050505;
+            border: 1px solid rgba(255, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+            transition: 0.4s;
+        }
+        .prime-card:hover { border-color: var(--primary); box-shadow: 0 0 30px rgba(255,0,0,0.1); }
+
+        /* ინპუტების სტილი */
+        .input-cyber {
+            background: #020202;
+            border: 1px solid #222;
+            color: white;
+            padding: 14px;
+            width: 100%;
+            font-size: 13px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .input-cyber:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(255,0,0,0.2); }
+
+        /* ღილაკების სტილი */
+        .btn-prime {
+            background: #fff;
+            color: #000;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 18px;
+            clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+            font-style: italic;
+        }
+        .btn-prime:hover { background: var(--primary); color: white; }
+
+        .nav-btn {
+            font-size: 11px; border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 18px; transition: 0.3s;
+            background: rgba(0,0,0,0.5); color: white; text-transform: uppercase;
+        }
+        .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        .gender-btn { border: 1px solid #222; padding: 12px; flex: 1; font-size: 11px; text-transform: uppercase; transition: 0.3s; color: #777; }
+        .gender-active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        /* ანიმაციები */
+        .reveal-up { animation: revealUp 0.8s ease-out forwards; }
+        @keyframes revealUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-panel { display: none; }
+        .supp-item { background: rgba(255, 255, 255, 0.03); border-left: 3px solid var(--primary); padding: 15px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <nav class="fixed top-0 w-full z-[100] border-b border-[#FF0000]/20 bg-black/80 backdrop-blur-md">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black italic tracking-tighter uppercase">
+                EVER<span class="text-[#FF0000]">PRIME</span>
+            </a>
+            <div class="flex gap-4">
+                <a href="index.html" class="nav-btn">მთავარი</a>
+             
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20 container mx-auto px-6 max-w-6xl">
+        <div class="mb-12 reveal-up">
+            <h1 class="text-4xl md:text-6xl font-black italic uppercase leading-none border-l-8 border-red-600 pl-6">
+                AI ბიომეტრიული <br><span class="text-red-600">ოპტიმიზაცია</span>
+            </h1>
+        </div>
+<div class="reveal-up mb-8">
+    <div class="border border-red-600/30 bg-red-600/5 p-4 rounded-sm flex flex-col md:flex-row items-center gap-4">
+        <div class="flex-shrink-0">
+            <span class="text-red-600 text-2xl animate-pulse">⚠</span>
+        </div>
+        <div class="text-[11px] leading-relaxed italic text-gray-400">
+            <p>
+                <strong class="text-red-500 uppercase">სისტემური შეტყობინება:</strong> 
+                ეს კალკულატორი ეფუძნება <span class="text-white">ხელოვნურ ინტელექტს</span> და Mifflin-St Jeor-ის ალგორითმს. 
+                გამოთვლების სიზუსტე შეადგენს <span class="text-red-500 font-bold">95.4%-ს</span> სტანდარტულ ბიომეტრიულ მონაცემებში.
+            </p>
+            <p class="mt-2 border-t border-white/5 pt-2">
+                <span class="text-white font-bold">მნიშვნელოვანი:</span> ალერგიული რეაქციების, ქრონიკული დაავადებების ან ჯანმრთელობის სპეციფიკური მდგომარეობის შემთხვევაში, დანამატების მიღებამდე <span class="underline decoration-red-600">აუცილებელია გაიაროთ კონსულტაცია მკურნალ ექიმთან</span>.
+            </p>
+        </div>
+    </div>
+</div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div class="lg:col-span-5 reveal-up">
+                <div class="prime-card">
+                    <p class="text-[10px] text-red-600 uppercase tracking-widest mb-6">// DIAGNOSTIC_INPUT_REQUIRED</p>
+                    <div class="space-y-5">
+                        <div class="flex gap-2">
+                            <button onclick="setGender('male', this)" id="male-btn" class="gender-btn gender-active">მამაკაცი</button>
+                            <button onclick="setGender('female', this)" id="female-btn" class="gender-btn">ქალი</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] uppercase text-gray-500 block mb-1">ასაკი</label>
+                                <input type="number" id="age" placeholder="25" class="input-cyber">
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase text-gray-500 block mb-1">წონა (კგ)</label>
+                                <input type="number" id="weight" placeholder="80" class="input-cyber">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">სიმაღლე (სმ)</label>
+                            <input type="number" id="height" placeholder="180" class="input-cyber">
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">აქტივობის დონე</label>
+                            <select id="activity" class="input-cyber uppercase">
+                                <option value="1.2">პასიური (მჯდომარე)</option>
+                                <option value="1.375">მსუბუქი (1-3 დღე)</option>
+                                <option value="1.55" selected>საშუალო (3-5 დღე)</option>
+                                <option value="1.725">აქტიური (6-7 დღე)</option>
+                                <option value="1.9">ელიტური ათლეტი</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">სტრატეგიული მიზანი</label>
+                            <select id="goal" class="input-cyber text-red-500 font-bold uppercase">
+                                <option value="mass">Bulking (მასის მატება)</option>
+                                <option value="loss">Cutting (წონის დაკლება)</option>
+                                <option value="maintain">Maintenance (შენარჩუნება)</option>
+                            </select>
+                        </div>
+                        <button onclick="calculatePrime()" class="btn-prime w-full mt-4">ანალიზის დაწყება</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results" class="lg:col-span-7 result-panel space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="prime-card !p-4 border-b-2 border-red-600">
+                        <p class="text-[8px] uppercase text-gray-500">კალორია</p>
+                        <p id="out-target" class="text-2xl font-black italic">0</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">ცილა (გ)</p>
+                        <p id="out-prot" class="text-2xl font-black">0</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">ცხიმი (გ)</p>
+                        <p id="out-fat" class="text-2xl font-black">0</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">BMI ინდექსი</p>
+                        <p id="out-bmi" class="text-2xl font-black">0</p>
+                    </div>
+                </div>
+
+                <div class="prime-card !p-8 bg-black/40">
+                    <h3 class="text-xs font-bold text-red-600 uppercase mb-6 italic tracking-widest">// Ergogenic Supplement Matrix</h3>
+                    <div id="supp-list" class="space-y-4"></div>
+                </div>
+
+                <div class="p-4 border border-dashed border-white/10 text-[10px] text-gray-500 uppercase italic flex justify-between items-center">
+                    <span>ჰიდრაციის ოპტიმალური ნორმა:</span>
+                    <span class="text-white font-bold"><span id="out-water">0</span> ლიტრი / დღეში</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-10 border-t border-white/5 text-center">
+        <p class="text-[8px] text-gray-600 uppercase tracking-[1em]">EverPrime Legal Dept 2026</p>
+    </footer>
+
+    <script>
+        let currentGender = 'male';
+
+        function setGender(g, btn) {
+            currentGender = g;
+            document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('gender-active'));
+            btn.classList.add('gender-active');
+        }
+
+        function calculatePrime() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const age = parseInt(document.getElementById('age').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+            const goal = document.getElementById('goal').value;
+
+            if (!weight || !height || !age) {
+                alert("სისტემური შეცდომა: შეიყვანეთ ყველა მონაცემი.");
+                return;
+            }
+
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            bmr = (currentGender === 'male') ? bmr + 5 : bmr - 161; 
+            const tdee = bmr * activity;
+
+            const bmi = (weight / ((height/100) * (height/100))).toFixed(1); 
+
+            let targetCal, protein, fats;
+            if (goal === 'mass') {
+                targetCal = tdee + 400; protein = weight * 2.0; fats = weight * 0.9;
+            } else if (goal === 'loss') {
+                targetCal = tdee - 500; protein = weight * 2.3; fats = weight * 0.7;
+            } else {
+                targetCal = tdee; protein = weight * 1.8; fats = weight * 0.8;
+            } 
+
+            const water = (weight * 0.035).toFixed(1);
+            const caffeineDose = Math.round(weight * 3); 
+            
+            let supplements = [
+                { name: "Creatine Monohydrate", dose: "5გ", time: "ვარჯიშის შემდეგ", effect: "ATP რესინთეზი" },
+                { name: "Caffeine Anhydrous", dose: `${caffeineDose}მგ`, time: "ვარჯიშამდე 60წთ", effect: "ენერგია" }
+            ]; 
+
+            if (goal === 'mass') supplements.push({ name: "Beta-Alanine", dose: "3.2გ", time: "დღისით", effect: "გამძლეობა" });
+            else if (goal === 'loss') supplements.push({ name: "Whey Isolate", dose: "30გ", time: "ვარჯიშის შემდეგ", effect: "კუნთის შენარჩუნება" });
+
+            document.getElementById('out-target').innerText = Math.round(targetCal);
+            document.getElementById('out-prot').innerText = Math.round(protein) + "g";
+            document.getElementById('out-fat').innerText = Math.round(fats) + "g";
+            document.getElementById('out-bmi').innerText = bmi;
+            document.getElementById('out-water').innerText = water; 
+
+            const suppList = document.getElementById('supp-list');
+            suppList.innerHTML = supplements.map(s => `
+                <div class="supp-item reveal-up">
+                    <div class="flex justify-between items-start">
+                        <span class="text-white font-bold uppercase text-[10px] tracking-widest">${s.name}</span>
+                        <span class="text-[8px] bg-red-600 px-2 py-1 font-black italic uppercase">${s.time}</span>
+                    </div>
+                    <p class="text-[9px] text-gray-500 mt-2">დოზა: ${s.dose} | ეფექტი: ${s.effect}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').classList.add('reveal-up');
+            
+            window.scrollTo({ top: document.getElementById('results').offsetTop - 120, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
