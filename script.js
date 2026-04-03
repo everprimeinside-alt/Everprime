@@ -239,11 +239,22 @@ window.order = async (id, name) => {
             await addDoc(collection(db, "orders"), orderInfo);
             await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
+            // --- ტელეგრამ შეტყობინებების ლოგიკა ---
             const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-            const chatId = '-1003731895302';
             const tgText = `🚀 EverPrime: ახალი შეკვეთა!\n\n📦 პროდუქტი: ${orderInfo.product}\n📞 ტელეფონი: ${orderInfo.phone}\n📧 Email: ${orderInfo.email}\n📍 მისამართი: ${orderInfo.address}`;
+
+            // 1. ყოველთვის ვაგზავნით მთავარ ჩატში (EverPrime-ის ადმინი)
+            const mainChatId = '-1003731895302';
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainChatId}&text=${encodeURIComponent(tgText)}`);
+
+            // 2. სპეციალური ფილტრი Fitrock-ისთვის
+            // ვამოწმებთ, ურევია თუ არა პროდუქტის სახელში "Fitrock" (ან "ფიტროკი")
+            const isFitrock = orderInfo.product.toLowerCase().includes('fitrock') || orderInfo.product.includes('ფიტროკი');
             
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tgText)}`);
+            if (isFitrock) {
+                const fitrockChatId = '-1003886942000'; // მაგ: '-1002222333444'
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockChatId}&text=${encodeURIComponent(tgText)}`);
+            }
 
             window.primeShow("შეკვეთა გაგზავნილია! ოპერატორი მალე დაგიკავშირდებათ.");
         } catch (e) {
