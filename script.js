@@ -131,30 +131,36 @@ window.filterProducts = () => {
     paginated.forEach(p => {
         const inStock = p.inStock !== false;
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-        grid.innerHTML += `
-            <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
-                <div class="flex-grow">
-                    <div class="relative h-56 w-full flex items-center justify-center bg-black/40 mb-6 border border-white/5 overflow-hidden">
-                        <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
-                            ${inStock ? 'მარაგშია' : 'ამოწურულია'}
-                        </span>
-                        <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
-                    </div>
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-[12px] font-bold uppercase italic">${p.name}</h3>
-                            <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
-                        </div>
-                        <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
-                    </div>
+        // ამ კოდით ჩაანაცვლე filterProducts-ის შიგნით არსებული grid.innerHTML-ის ნაწილი:
+grid.innerHTML += `
+    <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
+        <div class="flex-grow">
+            <div class="relative h-65 w-full flex items-center justify-center bg-black/40 mb-6 border border-white/5 overflow-hidden">
+                <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
+                    ${inStock ? 'მარაგშია' : 'ამოწურულია'}
+                </span>
+                <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
+            </div>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name}</h3>
+                    <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
                 </div>
-                <div class="mt-auto flex flex-col gap-1">
-                    <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
-                    <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
-                        ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
-                    </button>
-                </div>
-            </div>`;
+             <div class="text-right">
+    <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
+    ${p.oldPrice ? `<p class="text-gray-500 text-[9px] uppercase tracking-tighter">იყო: ${p.oldPrice}₾</p>` : ''}
+</div>
+
+            </div>
+        </div>
+        <div class="mt-auto flex flex-col gap-1">
+            <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
+            <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
+                ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
+            </button>
+        </div>
+    </div>`;
+
     });
     renderPagination(totalPages);
 };
@@ -183,10 +189,11 @@ window.showDetails = (id) => {
             </div>
             <div class="text-left">
                 <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name}</h2>
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="text-white font-bold text-3xl">${p.price}₾</span>
-                    ${p.oldPrice ? `<span class="text-gray-500 line-through">${p.oldPrice}₾</span>` : ''}
-                </div>
+             <div class="flex items-baseline gap-3 mb-4">
+    <span class="text-white font-bold text-3xl">${p.price}₾</span>
+    ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
+</div>
+
                 <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის'}</p>
                 <div class="flex flex-col gap-2">
                     <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
