@@ -194,7 +194,7 @@ window.showDetails = (id) => {
     ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
 </div>
 
-                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის'}</p>
+                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
                 <div class="flex flex-col gap-2">
                     <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
                     <button onclick="window.closeDetails()" class="details-btn">დახურვა</button>
