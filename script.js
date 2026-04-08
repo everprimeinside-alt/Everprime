@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // პრელოადერის გაქრობა
     setTimeout(() => {
         const pre = document.getElementById('custom-preloader');
         if(pre) {
@@ -47,34 +48,46 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     const txt = document.getElementById('popup-text');
     const confirmBtn = document.getElementById('popup-confirm');
     const closeBtn = document.getElementById('popup-close');
-    if(!modal) return;
+    if(!modal || !txt) return;
+    
     txt.innerText = text;
     modal.classList.replace('hidden', 'flex');
-    if (confirmMode) {
+    
+    if (confirmMode && confirmBtn) {
         confirmBtn.classList.remove('hidden');
-        confirmBtn.onclick = () => { if (onConfirm) onConfirm(); modal.classList.replace('flex', 'hidden'); };
-    } else { confirmBtn.classList.add('hidden'); }
-    closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
+        confirmBtn.onclick = () => { 
+            if (onConfirm) onConfirm(); 
+            modal.classList.replace('flex', 'hidden'); 
+        };
+    } else if (confirmBtn) { 
+        confirmBtn.classList.add('hidden'); 
+    }
+    
+    if(closeBtn) closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
 
 // --- 3. ავტორიზაცია და სტატუსი ---
 onAuthStateChanged(auth, async (user) => {
-    const authSec = document.getElementById('auth-section');
-    const navUser = document.getElementById('nav-user-area');
-    
-    loadProducts();
-    loadCategories();
-
-    if (user) {
-        const userStatusRef = ref(rtdb, '/online_users/' + user.uid);
-        set(userStatusRef, { email: user.email, last_active: Date.now() });
-        onDisconnect(userStatusRef).remove();
+    try {
+        const authSec = document.getElementById('auth-section');
+        const navUser = document.getElementById('nav-user-area');
         
-        if(authSec) authSec.classList.add('hidden');
-        navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
-        loadUserProfile(user.uid);
-    } else {
-        if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
+        loadProducts();
+        loadCategories();
+
+        if (user) {
+            const userStatusRef = ref(rtdb, '/online_users/' + user.uid);
+            set(userStatusRef, { email: user.email, last_active: Date.now() });
+            onDisconnect(userStatusRef).remove();
+            
+            if(authSec) authSec.classList.add('hidden');
+            if(navUser) navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
+            loadUserProfile(user.uid);
+        } else {
+            if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
+        }
+    } catch (err) {
+        console.error("Auth error:", err);
     }
 });
 
@@ -115,7 +128,7 @@ window.filterProducts = () => {
     const sort = sortSelect ? sortSelect.value : "default";
     
     let filtered = allProducts.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search);
+        const matchesSearch = p.name ? p.name.toLowerCase().includes(search) : false;
         const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
         return matchesSearch && matchesCategory;
     });
@@ -173,6 +186,7 @@ window.showDetails = (id) => {
 
     const modal = document.getElementById('details-modal-overlay');
     const content = document.getElementById('details-content');
+    if(!modal || !content) return;
 
     content.innerHTML = `
         <div class="flex flex-col gap-6">
@@ -216,7 +230,10 @@ window.showDetails = (id) => {
     modal.style.display = 'flex';
 };
 
-window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
+window.closeDetails = () => { 
+    const modal = document.getElementById('details-modal-overlay');
+    if(modal) modal.style.display = 'none'; 
+};
 
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
@@ -225,7 +242,11 @@ window.order = async (id, name) => {
 
     const uDoc = await getDoc(doc(db, "users", user.uid));
     const data = uDoc.data();
-    if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+    if(!data || !data.phone || !data.address) { 
+        window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); 
+        window.toggleProfile(); 
+        return; 
+    }
 
     window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
         const orderInfo = {
@@ -242,10 +263,8 @@ window.order = async (id, name) => {
 
         const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
 
-        // პირველ ჯგუფში გაგზავნა
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupAllId}&text=${encodeURIComponent(tgText)}`);
 
-        // მეორე ჯგუფში გაგზავნა (თუ არის fitrock)
         if (name.toLowerCase().includes('fitrock')) {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupFitrockId}&text=${encodeURIComponent(tgText)}`);
         }
@@ -257,7 +276,8 @@ window.order = async (id, name) => {
 // --- 7. დამხმარე UI ფუნქციები ---
 function renderPagination(total) {
     const container = document.getElementById('pagination-bottom');
-    if (!container || total <= 1) { if(container) container.innerHTML = ''; return; }
+    if (!container) return;
+    if (total <= 1) { container.innerHTML = ''; return; }
     container.innerHTML = '';
     for (let i = 1; i <= total; i++) {
         const active = i === currentPage ? 'bg-red-600 text-white' : 'text-gray-500 border-white/10';
@@ -265,7 +285,12 @@ function renderPagination(total) {
     }
 }
 
-window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.getElementById('shop').scrollIntoView({behavior: 'smooth'}); };
+window.goToPage = (p) => { 
+    currentPage = p; 
+    window.filterProducts(); 
+    const shop = document.getElementById('shop');
+    if(shop) shop.scrollIntoView({behavior: 'smooth'}); 
+};
 
 // --- 8. ავტორიზაციის და პროფილის ფუნქციები ---
 async function loadUserProfile(uid) {
@@ -280,27 +305,30 @@ async function loadUserProfile(uid) {
 
 window.updateProfile = async () => {
     const user = auth.currentUser;
-    if(user) {
-        await setDoc(doc(db, "users", user.uid), {
-            phone: document.getElementById('u-phone-upd').value,
-            address: document.getElementById('u-address-upd').value
-        }, { merge: true });
+    const phone = document.getElementById('u-phone-upd')?.value;
+    const address = document.getElementById('u-address-upd')?.value;
+    if(user && phone && address) {
+        await setDoc(doc(db, "users", user.uid), { phone, address }, { merge: true });
         window.primeShow("პროფილი განახლდა!");
         window.toggleProfile();
     }
 };
 
 window.handleLogin = async () => {
-    const email = document.getElementById('l-email').value;
-    const pass = document.getElementById('l-pass').value;
-    try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { window.primeShow("შეცდომა: " + e.message); }
+    const email = document.getElementById('l-email')?.value;
+    const pass = document.getElementById('l-pass')?.value;
+    try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+    } catch(e) { 
+        window.primeShow("შეცდომა: " + e.message); 
+    }
 };
 
 window.handleRegister = async () => {
-    const email = document.getElementById('r-email').value;
-    const pass = document.getElementById('r-pass').value;
-    const phone = document.getElementById('r-phone').value;
-    const addr = document.getElementById('r-address').value;
+    const email = document.getElementById('r-email')?.value;
+    const pass = document.getElementById('r-pass')?.value;
+    const phone = document.getElementById('r-phone')?.value;
+    const addr = document.getElementById('r-address')?.value;
     try {
         const res = await createUserWithEmailAndPassword(auth, email, pass);
         await setDoc(doc(db, "users", res.user.uid), { email, phone, address: addr, role: "user" });
@@ -308,10 +336,10 @@ window.handleRegister = async () => {
 };
 
 window.handleLogout = () => signOut(auth).then(() => location.reload());
-window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
+window.toggleProfile = () => document.getElementById('profile-modal')?.classList.toggle('hidden');
 window.toggleAuth = () => { 
-    document.getElementById('login-form').classList.toggle('hidden'); 
-    document.getElementById('register-form').classList.toggle('hidden'); 
+    document.getElementById('login-form')?.classList.toggle('hidden'); 
+    document.getElementById('register-form')?.classList.toggle('hidden'); 
 };
 window.scrollToAuth = () => { 
     const sec = document.getElementById('auth-section');
@@ -329,4 +357,7 @@ window.addEventListener('scroll', () => {
     lastScroll = st <= 0 ? 0 : st;
 });
 
-window.scrollSlide = (distance) => { document.getElementById('slider-list').scrollBy({ left: distance, behavior: 'smooth' }); };
+window.scrollSlide = (distance) => { 
+    const list = document.getElementById('slider-list');
+    if(list) list.scrollBy({ left: distance, behavior: 'smooth' }); 
+};
