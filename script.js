@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 // --- კონფიგურაცია ---
@@ -20,145 +20,210 @@ const db = getFirestore(app);
 const rtdb = getDatabase(app);
 
 let allProducts = [];
+let currentPage = 1;
 let currentCategory = 'all';
 
-// --- 1. ვიზუალური ეფექტები (კურსორი და პრელოადერი) ---
-document.addEventListener('mousemove', (e) => {
+// --- 1. ინტერაქტიული ელემენტები (Cursor & Preloader) ---
+document.addEventListener("DOMContentLoaded", () => {
     const cursor = document.getElementById('cursor');
-    if (cursor) {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
+    document.addEventListener('mousemove', (e) => {
+        if(cursor) {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        }
+    });
+
+    setTimeout(() => {
+        const pre = document.getElementById('custom-preloader');
+        if(pre) {
+            pre.classList.add('loader-hidden');
+            setTimeout(() => pre.style.display = 'none', 800);
+        }
+    }, 2000);
+});
+
+// --- 2. შეტყობინებების ფანჯარა (Popup) ---
+window.primeShow = (text, confirmMode = false, onConfirm = null) => {
+    const modal = document.getElementById('prime-popup');
+    const txt = document.getElementById('popup-text');
+    const confirmBtn = document.getElementById('popup-confirm');
+    const closeBtn = document.getElementById('popup-close');
+    if(!modal) return;
+    
+    txt.innerText = text;
+    modal.classList.replace('hidden', 'flex');
+    
+    if (confirmMode) {
+        confirmBtn.classList.remove('hidden');
+        confirmBtn.onclick = () => { 
+            if (onConfirm) onConfirm(); 
+            modal.classList.replace('flex', 'hidden'); 
+        };
+    } else { 
+        confirmBtn.classList.add('hidden'); 
+    }
+    closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
+};
+
+// --- 3. ავტორიზაცია და სტატუსი ---
+onAuthStateChanged(auth, async (user) => {
+    const authSec = document.getElementById('auth-section');
+    const navUser = document.getElementById('nav-user-area');
+    
+    loadProducts();
+    loadCategories();
+
+    if (user) {
+        // სტატუსის განახლება Realtime Database-ში
+        const userStatusRef = ref(rtdb, '/online_users/' + user.uid);
+        set(userStatusRef, { email: user.email, last_active: Date.now() });
+        onDisconnect(userStatusRef).remove();
+        
+        if(authSec) authSec.classList.add('hidden');
+        navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
+        loadUserProfile(user.uid);
+    } else {
+        if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
     }
 });
 
-const hideLoader = () => {
-    const loader = document.getElementById('custom-preloader');
-    if (loader) {
-        loader.classList.add('loader-hidden');
-        setTimeout(() => { loader.style.display = 'none'; }, 800);
-    }
-};
-
-// --- 2. მთავარი გვერდის Hero სლაიდერი ---
-window.scrollSlide = (direction) => {
-    const slider = document.getElementById('slider-list');
-    if (slider) {
-        slider.scrollBy({ left: direction, behavior: 'smooth' });
-    }
-};
-
-// --- 3. მონაცემების რეალურ დროში ჩატვირთვა ---
-const loadData = () => {
-    // კატეგორიები
+// --- 4. პროდუქტების და კატეგორიების მართვა ---
+function loadCategories() {
     onSnapshot(collection(db, "categories"), (snap) => {
         const container = document.getElementById('category-container');
-        if (!container) return;
+        if(!container) return;
         container.innerHTML = `<button onclick="window.setCategory('all')" class="cat-btn ${currentCategory === 'all' ? 'active' : ''}">ყველა</button>`;
         snap.forEach(doc => {
             const cat = doc.data().name;
             container.innerHTML += `<button onclick="window.setCategory('${cat}')" class="cat-btn ${currentCategory === cat ? 'active' : ''}">${cat}</button>`;
         });
     });
+}
 
-    // პროდუქტები
-    onSnapshot(collection(db, "products"), (snap) => {
-        allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        window.renderProducts();
-        hideLoader();
-    });
+window.setCategory = (cat) => {
+    currentCategory = cat;
+    currentPage = 1;
+    window.filterProducts();
 };
 
-// --- 4. პროდუქტების რენდერი (Grid) ---
-window.renderProducts = () => {
+function loadProducts() {
+    onSnapshot(collection(db, "products"), (snap) => {
+        allProducts = [];
+        snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+        window.filterProducts();
+    });
+}
+
+window.filterProducts = () => {
+    const searchInput = document.getElementById('search-input');
+    const sortSelect = document.getElementById('sort-select');
     const grid = document.getElementById('product-grid');
-    if (!grid) return;
+    if(!grid) return;
 
-    const search = document.getElementById('search-input')?.value.toLowerCase() || "";
-    let filtered = allProducts.filter(p => 
-        (currentCategory === 'all' || p.category === currentCategory) &&
-        (p.name?.toLowerCase().includes(search))
-    );
-
-    grid.innerHTML = filtered.map(p => {
+    const search = searchInput ? searchInput.value.toLowerCase() : "";
+    const sort = sortSelect ? sortSelect.value : "default";
+    
+    let filtered = allProducts.filter(p => {
+        const matchesSearch = p.name?.toLowerCase().includes(search);
+        const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
+        return matchesSearch && matchesCategory;
+    });
+    
+    if(sort === 'low') filtered.sort((a,b) => a.price - b.price);
+    if(sort === 'high') filtered.sort((a,b) => b.price - a.price);
+    
+    const itemsPerPage = window.innerWidth < 768 ? 4 : 16;
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    
+    grid.innerHTML = '';
+    paginated.forEach(p => {
         const inStock = p.inStock !== false;
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
         
-        return `
+        grid.innerHTML += `
             <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
-                <div class="relative h-64 w-full flex items-center justify-center bg-black/40 mb-4 border border-white/5 overflow-hidden">
-                    <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700">
-                    ${p.oldPrice ? `<div class="absolute top-2 right-2 bg-red-600 text-[10px] px-2 py-1 font-bold italic z-10">SALE</div>` : ''}
-                    <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
-                        ${inStock ? 'მარაგშია' : 'ამოწურულია'}
-                    </span>
-                </div>
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-[13px] font-bold uppercase italic text-white leading-tight">${p.name}</h3>
-                    <div class="text-right">
-                        <p class="text-red-600 font-bold text-lg leading-none">${p.price}₾</p>
-                        ${p.oldPrice ? `<p class="text-[10px] text-gray-600 line-through">${p.oldPrice}₾</p>` : ''}
+                <div class="flex-grow">
+                    <div class="relative h-64 w-full flex items-center justify-center bg-black/40 mb-6 border border-white/5 overflow-hidden">
+                        <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
+                            ${inStock ? 'მარაგშია' : 'ამოწურულია'}
+                        </span>
+                        <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name}</h3>
+                            <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
+                            ${p.oldPrice ? `<p class="text-gray-500 text-[9px] uppercase tracking-tighter">იყო: ${p.oldPrice}₾</p>` : ''}
+                        </div>
                     </div>
                 </div>
-                <div class="mt-auto flex flex-col gap-2">
+                <div class="mt-auto flex flex-col gap-1">
                     <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
                     <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
-                        ${inStock ? 'შეკვეთა' : 'ამოწურულია'}
+                        ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
                     </button>
                 </div>
             </div>`;
-    }).join('');
+    });
+    renderPagination(totalPages);
 };
 
-// --- 5. პროდუქტის დეტალები და ფოტოების სლაიდერი ---
+// --- 5. სლაიდერი და დეტალები (სურათების გადართვით) ---
 window.showDetails = (id) => {
     const p = allProducts.find(item => item.id === id);
-    if (!p) return;
+    if(!p) return;
 
-    // ვამზადებთ სურათების მასივს
     const images = (p.images && p.images.length > 0) ? p.images : [p.image || 'logo.jpg'];
     let currentIdx = 0;
+    const inStock = p.inStock !== false;
 
+    const modal = document.getElementById('details-modal-overlay');
     const content = document.getElementById('details-content');
+
     content.innerHTML = `
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="relative w-full md:w-1/2 h-[350px] bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
-                <img id="modal-slider-img" src="${images[currentIdx]}" class="max-h-full max-w-full object-contain transition-opacity duration-300">
+        <div class="flex flex-col gap-6">
+            <div class="relative w-full aspect-square bg-black border border-white/5 flex items-center justify-center overflow-hidden">
+                <img id="modal-slider-img" src="${images[0]}" class="max-h-full max-w-full object-contain transition-opacity duration-300">
                 ${images.length > 1 ? `
-                    <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 hover:text-red-600 p-2 z-10">◀</button>
-                    <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 hover:text-red-600 p-2 z-10">▶</button>
-                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-white/50 font-bold">
-                        <span id="img-counter">1</span> / ${images.length}
-                    </div>
+                    <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">◀</button>
+                    <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">▶</button>
+                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono text-white/50" id="img-counter">1 / ${images.length}</div>
                 ` : ''}
             </div>
-            <div class="w-full md:w-1/2 text-left">
-                <h2 class="text-3xl font-black italic text-red-600 uppercase mb-4 tracking-tighter">${p.name}</h2>
-                <div class="max-h-48 overflow-y-auto mb-8 pr-2 custom-scrollbar">
-                    <p class="text-gray-400 text-sm leading-relaxed whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
+            <div class="text-left">
+                <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name}</h2>
+                <div class="flex items-baseline gap-3 mb-4">
+                    <span class="text-white font-bold text-3xl">${p.price}₾</span>
+                    ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="window.closeDetails()" class="details-btn !mb-0 flex-1">უკან</button>
-                    <button onclick="window.order('${p.id}', '${p.name}')" class="buy-btn flex-1">შეკვეთა</button>
+                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
+                <div class="flex flex-col gap-2">
+                    <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
+                    <button onclick="window.closeDetails()" class="details-btn">დახურვა</button>
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
 
-    document.getElementById('details-modal-overlay').style.display = 'flex';
-
-    if (images.length > 1) {
-        const imgDisplay = document.getElementById('modal-slider-img');
-        const counter = document.getElementById('img-counter');
-        const update = (idx) => {
-            imgDisplay.style.opacity = '0';
-            setTimeout(() => { 
-                imgDisplay.src = images[idx]; 
-                imgDisplay.style.opacity = '1'; 
-                if (counter) counter.innerText = idx + 1;
+    if(images.length > 1) {
+        const imgEl = document.getElementById('modal-slider-img');
+        const counterEl = document.getElementById('img-counter');
+        const update = () => {
+            imgEl.style.opacity = '0';
+            setTimeout(() => {
+                imgEl.src = images[currentIdx];
+                imgEl.style.opacity = '1';
+                counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
             }, 200);
         };
-        document.getElementById('prev-img').onclick = () => { currentIdx = (currentIdx - 1 + images.length) % images.length; update(currentIdx); };
-        document.getElementById('next-img').onclick = () => { currentIdx = (currentIdx + 1) % images.length; update(currentIdx); };
+        document.getElementById('prev-img').onclick = (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + images.length) % images.length; update(); };
+        document.getElementById('next-img').onclick = (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % images.length; update(); };
     }
+    modal.style.display = 'flex';
 };
 
 window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
@@ -166,63 +231,118 @@ window.closeDetails = () => { document.getElementById('details-modal-overlay').s
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
     const user = auth.currentUser;
-    if (!user) { alert("გთხოვთ გაიაროთ ავტორიზაცია!"); return; }
+    if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
 
     const uDoc = await getDoc(doc(db, "users", user.uid));
-    const userData = uDoc.data();
+    const data = uDoc.data();
+    if(!data || !data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
-    if (!userData?.phone) { alert("პროფილში მიუთითეთ ტელეფონის ნომერი!"); return; }
-
-    if (confirm(`გსურთ შეუკვეთოთ ${name}?`)) {
-        const orderData = {
-            product: name,
-            phone: userData.phone,
-            address: userData.address || 'N/A',
-            email: user.email,
-            timestamp: Date.now(),
-            time: new Date().toLocaleString('ka-GE')
+    window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
+        const orderInfo = { 
+            product: name, email: user.email, phone: data.phone, address: data.address, 
+            timestamp: Date.now(), time: new Date().toLocaleString('ka-GE') 
         };
-
-        await addDoc(collection(db, "orders"), orderData);
+        await addDoc(collection(db, "orders"), orderInfo);
         
-        // ტელეგრამ შეტყობინება
         const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-        const chatId = '-1003731895302';
-        const msg = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ნომერი: ${userData.phone}\n📍 მისამართი: ${userData.address}\n📧 მომხმარებელი: ${user.email}`;
+        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=-1003731895302&text=${encodeURIComponent(tgText)}`);
         
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+        window.primeShow("შეკვეთა გაიგზავნა!");
+    });
+};
 
-        alert("შეკვეთა წარმატებით გაიგზავნა!");
+// --- 7. დამხმარე UI ფუნქციები (პაგინაცია) ---
+function renderPagination(total) {
+    const container = document.getElementById('pagination-bottom');
+    if (!container) return;
+    if (total <= 1) { container.innerHTML = ''; return; }
+    
+    container.innerHTML = '';
+    for (let i = 1; i <= total; i++) {
+        const activeClass = i === currentPage ? 'bg-red-600 text-white' : 'text-gray-500 border-white/10';
+        container.innerHTML += `<button onclick="window.goToPage(${i})" class="w-10 h-10 border font-bold transition-all ${activeClass}">${i}</button>`;
+    }
+}
+
+window.goToPage = (p) => { 
+    currentPage = p; 
+    window.filterProducts(); 
+    document.getElementById('shop').scrollIntoView({behavior: 'smooth'}); 
+};
+
+// --- 8. ავტორიზაციის და პროფილის ფუნქციები ---
+async function loadUserProfile(uid) {
+    const d = await getDoc(doc(db, "users", uid));
+    if(d.exists()) {
+        const phoneInput = document.getElementById('u-phone-upd');
+        const addrInput = document.getElementById('u-address-upd');
+        if(phoneInput) phoneInput.value = d.data().phone || '';
+        if(addrInput) addrInput.value = d.data().address || '';
+    }
+}
+
+window.updateProfile = async () => {
+    const user = auth.currentUser;
+    if(user) {
+        await setDoc(doc(db, "users", user.uid), {
+            phone: document.getElementById('u-phone-upd').value,
+            address: document.getElementById('u-address-upd').value
+        }, { merge: true });
+        window.primeShow("პროფილი განახლდა!");
+        window.toggleProfile();
     }
 };
 
-// --- 7. ავტორიზაციის და სტატუსის მართვა ---
-onAuthStateChanged(auth, (user) => {
-    const navArea = document.getElementById('nav-user-area');
-    if (user && navArea) {
-        navArea.innerHTML = `
-            <button onclick="window.toggleProfile()" class="nav-btn uppercase">${user.email.split('@')[0]}</button>
-            <button onclick="window.handleLogout()" class="text-[9px] text-red-600 ml-2 font-bold italic">LOGOUT</button>
-        `;
-        
-        // ონლაინ სტატუსი (RTDB)
-        const statusRef = ref(rtdb, '/online_users/' + user.uid);
-        set(statusRef, { email: user.email, last_active: Date.now() });
-        onDisconnect(statusRef).remove();
+window.handleLogin = async () => {
+    const email = document.getElementById('l-email').value;
+    const pass = document.getElementById('l-pass').value;
+    try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+    } catch(e) { 
+        window.primeShow("შეცდომა: " + e.message); 
     }
-});
+};
 
-window.setCategory = (cat) => {
-    currentCategory = cat;
-    window.renderProducts();
+window.handleRegister = async () => {
+    const email = document.getElementById('r-email').value;
+    const pass = document.getElementById('r-pass').value;
+    const phone = document.getElementById('r-phone').value;
+    const addr = document.getElementById('r-address').value;
+    try {
+        const res = await createUserWithEmailAndPassword(auth, email, pass);
+        await setDoc(doc(db, "users", res.user.uid), { email, phone, address: addr, role: "user" });
+    } catch(e) { 
+        window.primeShow("შეცდომა: " + e.message); 
+    }
 };
 
 window.handleLogout = () => signOut(auth).then(() => location.reload());
-
 window.toggleProfile = () => {
-    const modal = document.getElementById('profile-modal');
-    modal.classList.toggle('hidden');
+    const prof = document.getElementById('profile-modal');
+    if(prof) prof.classList.toggle('hidden');
+};
+window.toggleAuth = () => { 
+    document.getElementById('login-form').classList.toggle('hidden'); 
+    document.getElementById('register-form').classList.toggle('hidden'); 
+};
+window.scrollToAuth = () => { 
+    const sec = document.getElementById('auth-section');
+    if(sec) sec.classList.remove('hidden');
 };
 
-// სტარტი
-document.addEventListener('DOMContentLoaded', loadData);
+// --- 9. Navigation Slider Logic ---
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+    const slider = document.getElementById('main-slider-container');
+    if(!slider) return;
+    let st = window.pageYOffset || document.documentElement.scrollTop;
+    if (st > lastScroll && st > 100) slider.classList.add('slider-hidden');
+    else slider.classList.remove('slider-hidden');
+    lastScroll = st <= 0 ? 0 : st;
+});
+
+window.scrollSlide = (distance) => { 
+    const list = document.getElementById('slider-list');
+    if(list) list.scrollBy({ left: distance, behavior: 'smooth' }); 
+};
