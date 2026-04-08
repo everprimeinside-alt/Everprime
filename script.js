@@ -74,7 +74,7 @@ onAuthStateChanged(auth, async (user) => {
         navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
     } else {
-        navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
+        if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
     }
 });
 
@@ -131,36 +131,33 @@ window.filterProducts = () => {
     paginated.forEach(p => {
         const inStock = p.inStock !== false;
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-        // ამ კოდით ჩაანაცვლე filterProducts-ის შიგნით არსებული grid.innerHTML-ის ნაწილი:
-grid.innerHTML += `
-    <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
-        <div class="flex-grow">
-            <div class="relative h-65 w-full flex items-center justify-center bg-black/40 mb-6 border border-white/5 overflow-hidden">
-                <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
-                    ${inStock ? 'მარაგშია' : 'ამოწურულია'}
-                </span>
-                <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
-            </div>
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name}</h3>
-                    <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
+        grid.innerHTML += `
+        <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
+            <div class="flex-grow">
+                <div class="relative h-65 w-full flex items-center justify-center bg-black/40 mb-6 border border-white/5 overflow-hidden">
+                    <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
+                        ${inStock ? 'მარაგშია' : 'ამოწურულია'}
+                    </span>
+                    <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
                 </div>
-             <div class="text-right">
-    <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
-    ${p.oldPrice ? `<p class="text-gray-500 text-[9px] uppercase tracking-tighter">იყო: ${p.oldPrice}₾</p>` : ''}
-</div>
-
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name}</h3>
+                        <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
+                        ${p.oldPrice ? `<p class="text-gray-500 text-[9px] uppercase tracking-tighter">იყო: ${p.oldPrice}₾</p>` : ''}
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="mt-auto flex flex-col gap-1">
-            <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
-            <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
-                ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
-            </button>
-        </div>
-    </div>`;
-
+            <div class="mt-auto flex flex-col gap-1">
+                <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
+                <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
+                    ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
+                </button>
+            </div>
+        </div>`;
     });
     renderPagination(totalPages);
 };
@@ -189,11 +186,10 @@ window.showDetails = (id) => {
             </div>
             <div class="text-left">
                 <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name}</h2>
-             <div class="flex items-baseline gap-3 mb-4">
-    <span class="text-white font-bold text-3xl">${p.price}₾</span>
-    ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
-</div>
-
+                <div class="flex items-baseline gap-3 mb-4">
+                    <span class="text-white font-bold text-3xl">${p.price}₾</span>
+                    ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
+                </div>
                 <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
                 <div class="flex flex-col gap-2">
                     <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
@@ -223,42 +219,40 @@ window.showDetails = (id) => {
 window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
 
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
-// --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
-const user = auth.currentUser;
-if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
+    const user = auth.currentUser;
+    if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
 
-const uDoc = await getDoc(doc(db, "users", user.uid));
-const data = uDoc.data();
-if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+    const uDoc = await getDoc(doc(db, "users", user.uid));
+    const data = uDoc.data();
+    if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
-window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
-const orderInfo = {
-product: name, email: user.email, phone: data.phone, address: data.address,
-timestamp: Date.now(), time: new Date().toLocaleString('ka-GE')
+    window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
+        const orderInfo = {
+            product: name, email: user.email, phone: data.phone, address: data.address,
+            timestamp: Date.now(), time: new Date().toLocaleString('ka-GE')
+        };
+
+        await addDoc(collection(db, "orders"), orderInfo);
+        await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
+
+        const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
+        const groupAllId = '-1003731895302';
+        const groupFitrockId = '-1003886942000';
+
+        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
+
+        // პირველ ჯგუფში გაგზავნა
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupAllId}&text=${encodeURIComponent(tgText)}`);
+
+        // მეორე ჯგუფში გაგზავნა (თუ არის fitrock)
+        if (name.toLowerCase().includes('fitrock')) {
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupFitrockId}&text=${encodeURIComponent(tgText)}`);
+        }
+
+        window.primeShow("შეკვეთა გაიგზავნა!");
+    });
 };
-
-// ბაზაში შენახვა
-await addDoc(collection(db, "orders"), orderInfo);
-await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
-
-// ტელეგრამის მონაცემები
-const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-const groupAllId = '-1003731895302'; // ჯგუფი 1 (ყველა შეკვეთა)
-const groupFitrockId = '-1003886942000'; // ჯგუფი 2 (მხოლოდ Fitrock)
-
-const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
-
-// 1. ყოველთვის ვაგზავნით პირველ ჯგუფში
-fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupAllId}&text=${encodeURIComponent(tgText)}`);
-
-// 2. ვამოწმებთ არის თუ არა "fitrock" სახელში და ვაგზავნით მეორე ჯგუფში
-if (name.toLowerCase().includes('fitrock')) {
-fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupFitrockId}&text=${encodeURIComponent(tgText)}`);
-}
-
-window.primeShow("შეკვეთა გაიგზავნა!");
-});
 
 // --- 7. დამხმარე UI ფუნქციები ---
 function renderPagination(total) {
@@ -277,8 +271,10 @@ window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.ge
 async function loadUserProfile(uid) {
     const d = await getDoc(doc(db, "users", uid));
     if(d.exists()) {
-        document.getElementById('u-phone-upd').value = d.data().phone || '';
-        document.getElementById('u-address-upd').value = d.data().address || '';
+        const ph = document.getElementById('u-phone-upd');
+        const ad = document.getElementById('u-address-upd');
+        if(ph) ph.value = d.data().phone || '';
+        if(ad) ad.value = d.data().address || '';
     }
 }
 
