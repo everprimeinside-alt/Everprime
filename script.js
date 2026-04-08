@@ -223,29 +223,42 @@ window.showDetails = (id) => {
 window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
 
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
+// --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
-    const user = auth.currentUser;
-    if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
+const user = auth.currentUser;
+if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
 
-    const uDoc = await getDoc(doc(db, "users", user.uid));
-    const data = uDoc.data();
-    if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+const uDoc = await getDoc(doc(db, "users", user.uid));
+const data = uDoc.data();
+if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
-    window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
-        const orderInfo = { 
-            product: name, email: user.email, phone: data.phone, address: data.address, 
-            timestamp: Date.now(), time: new Date().toLocaleString('ka-GE') 
-        };
-        await addDoc(collection(db, "orders"), orderInfo);
-        await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
-        
-        const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=-1003731895302&text=${encodeURIComponent(tgText)}`);
-        
-        window.primeShow("შეკვეთა გაიგზავნა!");
-    });
+window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
+const orderInfo = {
+product: name, email: user.email, phone: data.phone, address: data.address,
+timestamp: Date.now(), time: new Date().toLocaleString('ka-GE')
 };
+
+// ბაზაში შენახვა
+await addDoc(collection(db, "orders"), orderInfo);
+await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
+
+// ტელეგრამის მონაცემები
+const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
+const groupAllId = '-1003731895302'; // ჯგუფი 1 (ყველა შეკვეთა)
+const groupFitrockId = '-1003886942000'; // ჯგუფი 2 (მხოლოდ Fitrock)
+
+const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
+
+// 1. ყოველთვის ვაგზავნით პირველ ჯგუფში
+fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupAllId}&text=${encodeURIComponent(tgText)}`);
+
+// 2. ვამოწმებთ არის თუ არა "fitrock" სახელში და ვაგზავნით მეორე ჯგუფში
+if (name.toLowerCase().includes('fitrock')) {
+fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupFitrockId}&text=${encodeURIComponent(tgText)}`);
+}
+
+window.primeShow("შეკვეთა გაიგზავნა!");
+});
 
 // --- 7. დამხმარე UI ფუნქციები ---
 function renderPagination(total) {
