@@ -23,13 +23,6 @@ body {
     background-size: 100% 4px, 3px 100%; z-index: 1000; pointer-events: none; opacity: 0.4;
 }
 
-/* Custom Cursor */
-.custom-cursor {
-    width: 12px; height: 12px; background: #FF0000;
-    position: fixed; pointer-events: none; z-index: 9999; box-shadow: 0 0 15px #FF0000;
-    transform: translate(-50%, -50%);
-}
-
 /* Product Cards */
 .product-card {
     background: #050505; border: 1px solid #111; padding: 25px;
@@ -241,11 +234,3 @@ textarea:focus {
 #modal-slider-img {
     transition: opacity 0.3s ease-in-out;
 }
-/* მაუსზე აკიდებული წითელი ობიექტის სრული გაქრობა */
-.custom-cursor, #cursor {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-
