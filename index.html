@@ -114,7 +114,7 @@
             <button onclick="window.toggleProfile()" class="absolute top-6 right-6 text-red-600 hover:text-white transition">✕</button>
             <h2 class=" text-xl font-bold mb-8 italic text-red-600 tracking-tighter">მომხმარებლის მონაცემები</h2>
             <div class="space-y-4">
-                <input id="u-phone-upd" type="text" placeholder="ტელეფონკს ნომერი" class="auth-input">
+                <input id="u-phone-upd" type="text" placeholder="ტელეფონის ნომერი" class="auth-input">
                 <input id="u-address-upd" type="text" placeholder="მისამართი" class="auth-input">
                 <button onclick="window.updateProfile()" class="w-full bg-[#FF0000] text-white py-2  text-[25px] font-bold uppercase italic hover:bg-white hover:text-black transition-all shadow-[0_0_15px_rgba(255,0,0,0.4)]">განახლება</button>
                 <button onclick="window.handleLogout()" class="w-full border border-red-900 text-red-900 py-2  text-[20px] uppercase mt-4 hover:border-red-600 hover:text-red-600 transition">გასვლა</button>
@@ -167,6 +167,141 @@
                 </div>
             </div>
         </section>
+<!-- 3D კარუსელის სექციის დასაწყისი -->
+<section class="neon-3d-section">
+    <div class="floor-glow"></div>
+    <div class="stage">
+        <div class="carousel">
+            <div class="item">გეინერი</div>
+            <div class="item">ვიტამინი</div>
+            <div class="item">პროტეინი</div>
+            <div class="item">კრეატინი</div>
+            <div class="item">Pre-Workout</div>
+            <div class="item">ანიმო</div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* სექციის კონტეინერი - შემცირებული სიმაღლით */
+    .neon-3d-section {
+        position: relative;
+        width: 100%;
+        height: auto; 
+        padding: 6vw 0; /* სიმაღლე მნიშვნელოვნად შემცირდა კომპაქტურობისთვის */
+        background: #020204;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        perspective: 2000px;
+    }
+
+    /* 3D სცენა */
+    .neon-3d-section .stage {
+        width: 100%;
+        height: 16vw; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* მბრუნავი კარუსელი */
+    .neon-3d-section .carousel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        animation: rotateCyber 22s infinite linear;
+        will-change: transform;
+    }
+
+    /* გალამაზებული კონტეინერები კიბერ-კუთხეებით */
+    .neon-3d-section .item {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        
+        width: 18vw;       
+        height: 4.5vw;     
+        min-width: 95px;   
+        min-height: 30px;
+        
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.35vw;  
+        font-weight: 900;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.2vw;
+        
+        /* დახვეწილი ნახევრადგამჭვირვალე ფონი და ნეონის თხელი ჩარჩო */
+        background: linear-gradient(135deg, rgba(255, 0, 60, 0.03) 0%, rgba(255, 0, 60, 0.08) 100%);
+        border: 1px solid rgba(255, 0, 60, 0.25);
+        
+        text-shadow: 0 0 0.8vw #ff003c;
+        box-shadow: 0 0 1.5vw rgba(255, 0, 60, 0.1), inset 0 0 1vw rgba(255, 0, 60, 0.15);
+        
+        backface-visibility: hidden;
+        -webkit-box-reflect: below 0.4vw linear-gradient(transparent, rgba(255, 0, 60, 0.08));
+    }
+
+    /* კიბერპანკ კუთხეების შექმნა (ზედა მარცხენა და ქვედა მარჯვენა) */
+    .neon-3d-section .item::before,
+    .neon-3d-section .item::after {
+        content: '';
+        position: absolute;
+        width: 0.8vw;
+        height: 0.8vw;
+        border: 0.2vw solid #ff003c;
+        pointer-events: none;
+    }
+    /* ზედა მარცხენა კუთხე */
+    .neon-3d-section .item::before {
+        top: -1px;
+        left: -1px;
+        border-right: none;
+        border-bottom: none;
+    }
+    /* ქვედა მარჯვენა კუთხე */
+    .neon-3d-section .item::after {
+        bottom: -1px;
+        right: -1px;
+        border-left: none;
+        border-top: none;
+    }
+
+    /* 3D განლაგება (რადიუსი 42.5vw ეკრანის 90%-იანი სიგანისთვის) */
+    .neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(42.5vw); }
+    .neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(42.5vw); }
+    .neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(42.5vw); }
+    .neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(42.5vw); }
+    .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(42.5vw); }
+    .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(42.5vw); }
+
+    /* ბრუნვა - ოდნავ მეტი დახრა (-12deg) უკეთესი 3D აღქმისთვის */
+    @keyframes rotateCyber {
+        0% { transform: rotateX(-12deg) rotateY(0deg); }
+        100% { transform: rotateX(-12deg) rotateY(360deg); }
+    }
+
+    /* ნეონის იატაკი */
+    .neon-3d-section .floor-glow {
+        position: absolute;
+        bottom: -5%;
+        width: 85vw;
+        height: 25vw;
+        background: radial-gradient(circle, rgba(255, 0, 60, 0.18) 0%, transparent 70%);
+        transform: rotateX(90deg);
+        z-index: 1;
+        pointer-events: none;
+    }
+</style>
+<!-- 3D კარუსელის სექციის დასასრული -->
+
 <section id="shop" class="py-40 bg-black">
     <div class="container mx-auto px-6">
         <div class="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
