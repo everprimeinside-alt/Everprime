@@ -241,4 +241,11 @@ textarea:focus {
 #modal-slider-img {
     transition: opacity 0.3s ease-in-out;
 }
+/* მაუსზე აკიდებული წითელი ობიექტის სრული გაქრობა */
+.custom-cursor, #cursor {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
 
