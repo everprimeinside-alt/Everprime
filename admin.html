@@ -52,6 +52,7 @@
         <button onclick="showSection('users-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">მომხმარებლები</button>
         <button onclick="showSection('upload-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პროდუქტის დამატება</button>
         <button onclick="showSection('delete-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">ინვენტარი</button>
+        <button onclick="showSection('partners-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პარტნიორები</button>
     </nav>
 
     <main>
@@ -126,6 +127,32 @@
             <h2 class="font-sync text-xs text-gray-500 mb-6 uppercase tracking-widest italic">Inventory & Stock Status</h2>
             <div id="inventory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </section>
+
+        <!-- ახალი სექცია: პარტნიორების მართვა -->
+        <section id="partners-sec" class="admin-section">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                <div class="admin-card p-8 border-l-4 border-green-600 h-fit">
+                    <h2 class="font-sync text-xs mb-6 text-white italic uppercase tracking-[0.2em]">Add Partner</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">უნიკალური ID (მაგ: vako_fit)</label>
+                            <input id="partner-id" type="text" placeholder="vako_fit" class="w-full p-3 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">სახელი გვარი</label>
+                            <input id="partner-name" type="text" placeholder="ვაკო კაპანაძე" class="w-full p-3 text-sm">
+                        </div>
+                        <button onclick="window.addPartner()" class="w-full bg-green-600 py-3 font-sync text-[10px] font-black uppercase italic hover:bg-green-700 transition">
+                            პარტნიორის დამატება
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 admin-card p-8">
+                    <h2 class="font-sync text-xs mb-6 text-white italic uppercase tracking-[0.2em]">Active Partners</h2>
+                    <div id="partners-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script type="module">
@@ -152,7 +179,6 @@ const rtdb = getDatabase(app);
 let allUsers = [];
 let currentEditId = null; 
 
-// --- სექციების გადართვა ---
 window.showSection = (id, btn) => {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -160,14 +186,12 @@ window.showSection = (id, btn) => {
     if(btn) btn.classList.add('active');
 };
 
-// --- წაშლის ფუნქცია ---
 window.delDoc = async (coll, id) => {
     if(confirm(`ნამდვილად გსურთ წაშლა?`)) {
         try { await deleteDoc(doc(db, coll, id)); } catch (e) { alert(e.message); }
     }
 };
 
-// --- პროდუქტის შენახვა (სლაიდერის ლოგიკით) ---
 window.uploadProduct = async () => {
     const name = document.getElementById('p-name').value;
     const price = document.getElementById('p-price').value;
@@ -178,7 +202,6 @@ window.uploadProduct = async () => {
     
     if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
 
-    // აქ ხდება სლაიდშოუს მაგია: მძიმით გამოყოფილ ლინკებს ვაქცევთ მასივად
     const imagesArray = imagesRaw.split(',')
         .map(link => link.trim())
         .filter(link => link !== "" && link.startsWith('http'));
@@ -187,8 +210,8 @@ window.uploadProduct = async () => {
         name, 
         price: Number(price), 
         oldPrice: oldPrice ? Number(oldPrice) : null,
-        images: imagesArray, // ეს მასივი აუცილებელია სლაიდერისთვის
-        image: imagesArray[0] || '', // პირველი ფოტო ხდება მთავარი
+        images: imagesArray, 
+        image: imagesArray[0] || '', 
         desc, 
         category, 
         inStock: true,
@@ -197,12 +220,10 @@ window.uploadProduct = async () => {
 
     try {
         if(currentEditId) {
-            // რედაქტირება
             await setDoc(doc(db, "products", currentEditId), productData);
             alert("პროდუქტი წარმატებით განახლდა!");
             currentEditId = null;
         } else {
-            // ახლის დამატება
             productData.createdAt = Date.now();
             await addDoc(collection(db, "products"), productData);
             alert("პროდუქტი წარმატებით დაემატა!");
@@ -219,13 +240,11 @@ function resetProductForm() {
     currentEditId = null;
 }
 
-// --- რედაქტირების დაწყება ---
 window.startEdit = (id, data) => {
     currentEditId = id;
     document.getElementById('p-name').value = data.name || '';
     document.getElementById('p-price').value = data.price || '';
     document.getElementById('p-oldprice').value = data.oldPrice || '';
-    // ლინკებს ვაბრუნებთ ისევ მძიმით გამოყოფილ ტექსტად ინპუტში
     document.getElementById('p-image').value = data.images ? data.images.join(', ') : data.image;
     document.getElementById('p-desc').value = data.desc || '';
     document.getElementById('p-category').value = data.category || '';
@@ -234,14 +253,12 @@ window.startEdit = (id, data) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// --- მარაგის მართვა ---
 window.toggleStock = async (id, currentStatus) => {
     try {
         await setDoc(doc(db, "products", id), { inStock: !currentStatus }, { merge: true });
     } catch (e) { console.error(e); }
 };
 
-// --- კატეგორიები ---
 window.addCategory = async () => {
     const name = document.getElementById('new-cat-name').value.trim();
     if(!name) return;
@@ -251,9 +268,31 @@ window.addCategory = async () => {
     } catch (e) { alert(e.message); }
 };
 
-// --- მონაცემების მოსმენა (Real-time) ---
+// --- ახალი ფუნქცია: პარტნიორის დამატება ---
+window.addPartner = async () => {
+    const id = document.getElementById('partner-id').value.trim().toLowerCase();
+    const name = document.getElementById('partner-name').value.trim();
+    
+    if(!id || !name) return alert("შეავსეთ ორივე ველი!");
+    if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
+
+    try {
+        const checkExist = await getDoc(doc(db, "partners", id));
+        if (checkExist.exists()) return alert("ეს ID უკვე დაკავებულია!");
+
+        await setDoc(doc(doc(db, "partners", id)), {
+            id: id,
+            name: name,
+            createdAt: Date.now()
+        });
+        
+        document.getElementById('partner-id').value = '';
+        document.getElementById('partner-name').value = '';
+        alert("პარტნიორი წარმატებით დაემატა!");
+    } catch(e) { alert(e.message); }
+};
+
 function loadAdminData() {
-    // კატეგორიები
     onSnapshot(collection(db, "categories"), snap => {
         const select = document.getElementById('p-category');
         const list = document.getElementById('categories-list');
@@ -266,26 +305,36 @@ function loadAdminData() {
         });
     });
 
-    // შეკვეთები
+    // შეკვეთების სია სვეტით: რეფერალი
     onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
         const list = document.getElementById('orders-list');
         if(!list) return;
         list.innerHTML = '';
         snap.forEach(d => {
             const o = d.data();
+            const referrer = o.referrer || "Organic";
+            const refColor = referrer === "Organic" ? "text-gray-500" : "text-green-500 font-black";
+
             list.innerHTML += `
                 <div class="p-4 bg-white/5 border-l-4 border-red-600 mb-2 flex justify-between items-center group">
-                    <div>
-                        <p class="text-white font-bold uppercase text-sm">${o.product}</p>
-                        <p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p>
-                        <p class="text-[8px] text-red-500 uppercase">${o.time || ''}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full items-center">
+                        <div class="md:col-span-2">
+                            <p class="text-white font-bold uppercase text-sm">${o.product}</p>
+                            <p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p>
+                            <p class="text-[8px] text-red-500 uppercase">${o.time || ''}</p>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-gray-400 block uppercase">წყარო</span>
+                            <span class="text-xs uppercase tracking-wider ${refColor}">${referrer}</span>
+                        </div>
+                        <div class="text-right pr-4">
+                            <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
+                        </div>
                     </div>
-                    <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
                 </div>`;
         });
     });
 
-    // ინვენტარი
     onSnapshot(collection(db, "products"), snap => {
         const list = document.getElementById('inventory-list');
         if(!list) return;
@@ -318,19 +367,36 @@ function loadAdminData() {
         });
     });
 
-    // ახალი შეკვეთის ალერტი
+    // პარტნიორების რეალთაიმ სია
+    onSnapshot(collection(db, "partners"), snap => {
+        const list = document.getElementById('partners-list');
+        if(!list) return;
+        list.innerHTML = '';
+        snap.forEach(d => {
+            const p = d.data();
+            list.innerHTML += `
+                <div class="admin-card p-4 border border-white/5 flex justify-between items-center">
+                    <div>
+                        <p class="text-green-500 font-bold text-sm tracking-wider">?ref=${p.id}</p>
+                        <p class="text-[11px] text-white uppercase">${p.name}</p>
+                    </div>
+                    <button onclick="window.delDoc('partners', '${d.id}')" class="text-gray-700 hover:text-red-600 transition">
+                        <span class="material-icons text-sm">delete</span>
+                    </button>
+                </div>`;
+        });
+    });
+
     onChildAdded(rQuery(ref(rtdb, 'orders_live'), limitToLast(1)), (snap) => {
         const order = snap.val();
         if (order && (Date.now() - order.timestamp < 10000)) triggerAlarm(order);
     });
 
-    // ონლაინ მომხმარებლები
     onValue(ref(rtdb, 'online_users'), s => {
         const userStats = document.getElementById('user-stats');
         if(userStats) userStats.innerHTML = `● LIVE USERS: ${s.exists() ? Object.keys(s.val()).length : 0}`;
     });
 
-    // მომხმარებლების სია
     onSnapshot(collection(db, "users"), snap => {
         allUsers = [];
         snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
@@ -354,7 +420,6 @@ function renderUsers(usersArray) {
     });
 }
 
-// --- შეტყობინების ფუნქცია (Alarm) ---
 function triggerAlarm(data) {
     const overlay = document.getElementById('alarm-overlay');
     const details = document.getElementById('alarm-details');
@@ -363,13 +428,13 @@ function triggerAlarm(data) {
         <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product}</p>
         <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address}</p>
         <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone}</p>
+        <p class="text-red-500 font-black text-xs mt-1 uppercase">🔗 რეფერალი: ${data.referrer || 'Organic'}</p>
     `;
     overlay.classList.add('active');
     const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3');
     audio.play().catch(e => console.log("Audio play blocked"));
 }
 
-// --- ავტორიზაციის შემოწმება ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const u = await getDoc(doc(db, "users", user.uid));
@@ -383,7 +448,6 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// ძიების ფილტრი მომხმარებლებისთვის
 document.getElementById('user-search')?.addEventListener('input', (e) => {
     const val = e.target.value.toLowerCase();
     renderUsers(allUsers.filter(u => 
@@ -391,7 +455,6 @@ document.getElementById('user-search')?.addEventListener('input', (e) => {
         (u.phone?.includes(val))
     ));
 });
-
     </script>
 </body>
 </html>
