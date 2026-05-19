@@ -124,7 +124,6 @@
 
   <section id="auth-section" class="fixed inset-0 z-[150] bg-[#020202]/95 flex items-center justify-center p-6 hidden">
     <div class="max-w-md w-full bg-black p-10 border border-[#FF0000]/20 relative">
-        <!-- დახურვის ღილაკი -->
         <button onclick="document.getElementById('auth-section').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
 <div id="login-form">
                 <h2 class=" text-2xl font-bold mb-8 italic text-red-600 uppercase tracking-tighter"><span style="color:white">შესვლა </span>პრაიმში</h2>
@@ -167,7 +166,7 @@
                 </div>
             </div>
         </section>
-<!-- 3D კარუსელის სექციის დასაწყისი -->
+
 <section class="neon-3d-section">
     <div class="floor-glow"></div>
     <div class="stage">
@@ -183,12 +182,11 @@
 </section>
 
 <style>
-    /* სექციის კონტეინერი - შემცირებული სიმაღლით */
     .neon-3d-section {
         position: relative;
         width: 100%;
         height: auto; 
-        padding: 6vw 0; /* სიმაღლე მნიშვნელოვნად შემცირდა კომპაქტურობისთვის */
+        padding: 6vw 0; 
         background: #020204;
         display: flex;
         justify-content: center;
@@ -197,7 +195,6 @@
         perspective: 2000px;
     }
 
-    /* 3D სცენა */
     .neon-3d-section .stage {
         width: 100%;
         height: 16vw; 
@@ -206,7 +203,6 @@
         align-items: center;
     }
 
-    /* მბრუნავი კარუსელი */
     .neon-3d-section .carousel {
         position: relative;
         width: 100%;
@@ -216,7 +212,6 @@
         will-change: transform;
     }
 
-    /* გალამაზებული კონტეინერები კიბერ-კუთხეებით */
     .neon-3d-section .item {
         position: absolute;
         left: 50%;
@@ -236,7 +231,6 @@
         text-transform: uppercase;
         letter-spacing: 0.2vw;
         
-        /* დახვეწილი ნახევრადგამჭვირვალე ფონი და ნეონის თხელი ჩარჩო */
         background: linear-gradient(135deg, rgba(255, 0, 60, 0.03) 0%, rgba(255, 0, 60, 0.08) 100%);
         border: 1px solid rgba(255, 0, 60, 0.25);
         
@@ -247,7 +241,6 @@
         -webkit-box-reflect: below 0.4vw linear-gradient(transparent, rgba(255, 0, 60, 0.08));
     }
 
-    /* კიბერპანკ კუთხეების შექმნა (ზედა მარცხენა და ქვედა მარჯვენა) */
     .neon-3d-section .item::before,
     .neon-3d-section .item::after {
         content: '';
@@ -257,14 +250,12 @@
         border: 0.2vw solid #ff003c;
         pointer-events: none;
     }
-    /* ზედა მარცხენა კუთხე */
     .neon-3d-section .item::before {
         top: -1px;
         left: -1px;
         border-right: none;
         border-bottom: none;
     }
-    /* ქვედა მარჯვენა კუთხე */
     .neon-3d-section .item::after {
         bottom: -1px;
         right: -1px;
@@ -272,7 +263,6 @@
         border-top: none;
     }
 
-    /* 3D განლაგება (რადიუსი 42.5vw ეკრანის 90%-იანი სიგანისთვის) */
     .neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(42.5vw); }
     .neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(42.5vw); }
     .neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(42.5vw); }
@@ -280,13 +270,11 @@
     .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(42.5vw); }
     .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(42.5vw); }
 
-    /* ბრუნვა - ოდნავ მეტი დახრა (-12deg) უკეთესი 3D აღქმისთვის */
     @keyframes rotateCyber {
         0% { transform: rotateX(-12deg) rotateY(0deg); }
         100% { transform: rotateX(-12deg) rotateY(360deg); }
     }
 
-    /* ნეონის იატაკი */
     .neon-3d-section .floor-glow {
         position: absolute;
         bottom: -5%;
@@ -298,7 +286,6 @@
         pointer-events: none;
     }
 </style>
-<!-- 3D კარუსელის სექციის დასასრული -->
 
 <section id="shop" class="py-40 bg-black">
     <div class="container mx-auto px-6">
@@ -320,15 +307,11 @@
             </div>
         </div>
 
-        <!-- კატეგორიების დინამიური ღილაკები -->
         <div id="category-container" class="flex flex-wrap gap-3 mb-16 reveal-up">
             <button onclick="window.setCategory('all')" class="cat-btn active">ყველა</button>
-            <!-- აქ ჩაიწერება კატეგორიები ბაზიდან -->
         </div>
 
-        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- პროდუქტები ჩაიტვირთება აქ -->
-        </div>
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
         <div id="pagination-bottom" class="flex justify-center flex-wrap gap-2 mt-20"></div>
     </div>
@@ -365,9 +348,6 @@
         </div>
     </div>
 </div>
-<style>
-    
-</style>
     <script type="module" src="script.js"></script>
 </body>
 </html>
