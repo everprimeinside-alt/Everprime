@@ -128,7 +128,6 @@
             <div id="inventory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </section>
 
-        <!-- ახალი სექცია: პარტნიორების მართვა -->
         <section id="partners-sec" class="admin-section">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                 <div class="admin-card p-8 border-l-4 border-green-600 h-fit">
@@ -268,7 +267,7 @@ window.addCategory = async () => {
     } catch (e) { alert(e.message); }
 };
 
-// --- ახალი ფუნქცია: პარტნიორის დამატება ---
+// --- გასწორებული ფუნქცია: პარტნიორის დამატება ---
 window.addPartner = async () => {
     const id = document.getElementById('partner-id').value.trim().toLowerCase();
     const name = document.getElementById('partner-name').value.trim();
@@ -277,10 +276,12 @@ window.addPartner = async () => {
     if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
 
     try {
-        const checkExist = await getDoc(doc(db, "partners", id));
+        const partnerRef = doc(db, "partners", id);
+        const checkExist = await getDoc(partnerRef);
+        
         if (checkExist.exists()) return alert("ეს ID უკვე დაკავებულია!");
 
-        await setDoc(doc(doc(db, "partners", id)), {
+        await setDoc(partnerRef, {
             id: id,
             name: name,
             createdAt: Date.now()
