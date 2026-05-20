@@ -276,18 +276,26 @@ window.order = async (id, name) => {
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                // ტელეგრამის შეტყობინების გაგზავნა
+                // ტელეგრამის შეტყობინების გაგზავნა (განახლებული და გასწორებული ვერსია)
                 const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
+                const mainGroupId = '-1003731895302'; // ახალი, სწორი ID
+                const fitrockGroupId = '-10023886942000'; 
+
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-                const mainGroupId = '-10023731895302';
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
-                    .catch(e => console.log("Telegram main group error:", e));
+                // გაგზავნა მთავარ ჯგუფში no-cors რეჟიმით
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`, {
+                    mode: 'no-cors' // ბლოკავს CORS შეცდომას ბრაუზერში
+                })
+                .then(() => console.log("Telegram main group message sent successfully"))
+                .catch(e => console.log("Telegram main group error:", e));
 
-                const fitrockGroupId = '-10023886942000';
+                // გაგზავნა მეორე ჯგუფში, თუ პროდუქტი შეიცავს 'fitrock'-ს
                 if (name.toLowerCase().includes('fitrock')) {
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
-                        .catch(e => console.log("Telegram fitrock group error:", e));
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`, {
+                        mode: 'no-cors'
+                    })
+                    .catch(e => console.log("Telegram fitrock group error:", e));
                 }
 
                 window.primeShow("შეკვეთა გაიგზავნა!");
