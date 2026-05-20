@@ -3,463 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EverPrime | Admin Control</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Elvix Development - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
-        @import url('https://fonts.cdnfonts.com/css/syncopate');
-        body { font-family: 'BPG Phone Sans Bold', sans-serif; background: #050505; color: white; overflow-x: hidden; }
-        .font-sync { font-family: 'Syncopate', sans-serif; }
-        #alarm-overlay { display: none; }
-        #alarm-overlay.active { display: flex; animation: bg-flash 0.5s infinite alternate; }
-        @keyframes bg-flash {
-            from { background-color: rgba(220, 38, 38, 0.95); }
-            to { background-color: rgba(153, 27, 27, 0.98); }
+        body {
+            background-color: #0d0e12;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        .admin-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ff0000; }
-
-        .admin-section { display: none; }
-        .admin-section.active { display: block; }
-        .nav-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
-
-        input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-        input:focus, textarea:focus, select:focus { border-color: #dc2626 !important; outline: none; }
-        option { background: #050505; color: white; }
+        .glass-panel {
+            background: rgba(18, 20, 29, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0d0e12;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 3px;
+        }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="min-h-screen flex flex-col custom-scrollbar">
 
-    <div id="alarm-overlay" class="fixed inset-0 z-[9999] flex-col items-center justify-center text-center p-6 backdrop-blur-xl">
-        <div class="mb-6 animate-bounce"><span class="material-icons text-9xl text-white">warning</span></div>
-        <h2 class="font-sync text-5xl md:text-7xl font-black italic mb-8 text-white uppercase tracking-tighter">New Order</h2>
-        <div id="alarm-details" class="bg-black p-10 border-4 border-white text-left max-w-2xl w-full"></div>
-        <button onclick="document.getElementById('alarm-overlay').classList.remove('active')" class="mt-8 bg-white text-black px-8 py-3 font-bold uppercase italic">გათიშვა</button>
-    </div>
-
-    <header class="flex flex-col md:flex-row justify-between items-center border-b border-red-600 pb-8 mb-8 gap-6">
-        <div>
-            <h1 class="font-sync text-3xl font-black italic uppercase tracking-tighter">Ever<span class="text-red-600">Prime</span></h1>
-            <p class="text-[10px] uppercase tracking-[0.5em] opacity-50">Control Center v2.6</p>
+    <!-- Top Navigation Bar -->
+    <nav class="w-full glass-panel border-b border-zinc-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">E</div>
+            <span class="text-lg font-bold tracking-wider text-white">ELVIX <span class="text-indigo-400 text-sm font-medium">CORE</span></span>
         </div>
-        <div id="user-stats" class="text-green-500 text-xs font-bold uppercase italic animate-pulse">კავშირი...</div>
-    </header>
-
-    <nav class="flex flex-wrap gap-2 mb-10">
-        <button onclick="window.showSection('orders-sec', this)" class="nav-btn active border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">შეკვეთები</button>
-        <button onclick="window.showSection('users-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">მომხმარებლები</button>
-        <button onclick="window.showSection('upload-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პროდუქტის დამატება</button>
-        <button onclick="window.showSection('delete-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">ინვენტარი</button>
-        <button onclick="window.showSection('partners-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პარტნიორები</button>
+        <div class="flex items-center gap-4">
+            <div id="connectionStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> CONNECTED
+            </div>
+            <button id="logoutBtn" class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm font-medium transition-all duration-200 cursor-pointer">გასვლა</button>
+        </div>
     </nav>
 
-    <main>
-        <section id="orders-sec" class="admin-section active">
-            <h2 class="font-sync text-xs text-red-600 mb-6 uppercase tracking-widest italic">Recent Orders</h2>
-            <div id="orders-list" class="space-y-4 max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar"></div>
-        </section>
-
-        <section id="users-sec" class="admin-section">
-            <div class="mb-6">
-                <input id="user-search" type="text" placeholder="მოძებნე მომხმარებელი..." class="w-full p-4 text-sm uppercase tracking-widest">
+    <!-- Main Dashboard Container -->
+    <main class="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto grid grid-cols-1 gap-6">
+        
+        <!-- Metrics Stats Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-panel p-5 rounded-2xl flex flex-col gap-1 shadow-xl">
+                <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">ჯამური იუზერები</span>
+                <span id="statUsers" class="text-3xl font-bold text-white tracking-tight mt-1">0</span>
+                <div class="text-[11px] text-zinc-500 mt-2 font-mono">კოლექცია: /users</div>
             </div>
-            <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </section>
-
-        <section id="upload-sec" class="admin-section">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                <div class="admin-card p-8 border-l-4 border-red-600">
-                    <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Product Details</h2>
-                    <div class="grid grid-cols-1 gap-5">
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">დასახელება</label>
-                            <input id="p-name" type="text" placeholder="მაგ: Whey Protein" class="w-full p-3 text-sm">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">მიმდინარე ფასი (₾)</label>
-                                <input id="p-price" type="number" placeholder="0.00" class="w-full p-3 text-sm">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">ძველი ფასი (₾)</label>
-                                <input id="p-oldprice" type="number" placeholder="0.00" class="w-full p-3 text-sm">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">კატეგორია</label>
-                            <select id="p-category" class="w-full p-3 text-sm"></select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">სურათების ლინკები (გამოყავით მძიმით ",")</label>
-                            <input id="p-image" type="text" placeholder="link1, link2, link3" class="w-full p-3 text-sm">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">აღწერა</label>
-                            <textarea id="p-desc" rows="4" placeholder="პროდუქტის აღწერა..." class="w-full p-3 text-sm"></textarea>
-                        </div>
-                        <button onclick="window.uploadProduct()" class="w-full bg-red-600 py-4 font-sync text-[10px] font-black uppercase italic hover:bg-red-700 transition">
-                            პროდუქტის შენახვა
-                        </button>
-                    </div>
-                </div>
-
-                <div class="admin-card p-8 border-l-4 border-blue-600">
-                    <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Manage Categories</h2>
-                    <div class="flex gap-2 mb-6">
-                        <input id="new-cat-name" type="text" placeholder="ახალი კატეგორია..." class="flex-1 p-3 text-sm">
-                        <button onclick="window.addCategory()" class="bg-blue-600 px-6 font-bold uppercase text-xs italic">დამატება</button>
-                    </div>
-                    <div id="categories-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
-                </div>
+            <div class="glass-panel p-5 rounded-2xl flex flex-col gap-1 shadow-xl">
+                <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">აქტიური პროდუქტები</span>
+                <span id="statProducts" class="text-3xl font-bold text-indigo-400 tracking-tight mt-1">0</span>
+                <div class="text-[11px] text-zinc-500 mt-2 font-mono">კოლექცია: /products</div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl flex flex-col gap-1 shadow-xl">
+                <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">კატეგორიები</span>
+                <span id="statCategories" class="text-3xl font-bold text-amber-400 tracking-tight mt-1">0</span>
+                <div class="text-[11px] text-zinc-500 mt-2 font-mono">ველი: product.category</div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl flex flex-col gap-1 shadow-xl">
+                <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">რეფერალები</span>
+                <span id="statReferrals" class="text-3xl font-bold text-emerald-400 tracking-tight mt-1">0</span>
+                <div class="text-[11px] text-zinc-500 mt-2 font-mono">კოლექცია: /referrals</div>
             </div>
         </section>
 
-        <section id="delete-sec" class="admin-section">
-            <h2 class="font-sync text-xs text-gray-500 mb-6 uppercase tracking-widest italic">Inventory & Stock Status</h2>
-            <div id="inventory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <!-- Referral Creator Module -->
+        <section class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+            <div class="border-b border-zinc-800 pb-3">
+                <h2 class="text-base font-bold text-white tracking-wide">ახალი რეფერალის გენერირება</h2>
+                <p class="text-xs text-zinc-400 mt-0.5">შეაყვანინეთ სისტემას რეფერალი და მიაბით კონკრეტულ მომხმარებელს</p>
+            </div>
+            <form id="referralForm" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-medium text-zinc-300">რეფერალ კოდი</label>
+                    <input type="text" id="refCode" required placeholder="მაგ: GIO2026" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono transition-all">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-medium text-zinc-300">მომხმარებლის UID</label>
+                    <input type="text" id="refUserUid" required placeholder="Firebase User UID" class="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono transition-all">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/10 transition-all duration-200 cursor-pointer h-[42px]">შექმნა & მიბმა</button>
+            </form>
         </section>
 
-        <section id="partners-sec" class="admin-section">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                <div class="admin-card p-8 border-l-4 border-green-600 h-fit">
-                    <h2 class="font-sync text-xs mb-6 text-white italic uppercase tracking-[0.2em]">Add Partner</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">უნიკალური ID (მაგ: vako_fit)</label>
-                            <input id="partner-id" type="text" placeholder="vako_fit" class="w-full p-3 text-sm">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">სახელი გვარი</label>
-                            <input id="partner-name" type="text" placeholder="ვაკო კაპანაძე" class="w-full p-3 text-sm">
-                        </div>
-                        <button onclick="window.addPartner()" class="w-full bg-green-600 py-3 font-sync text-[10px] font-black uppercase italic hover:bg-green-700 transition">
-                            პარტნიორის დამატება
-                        </button>
+        <!-- Data Architecture Real-time Boards -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Users Grid Segment -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-wide">მომხმარებლების რეესტრი</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">სისტემაში რეგისტრირებული იუზერების სია</p>
                     </div>
+                    <span class="px-2 py-1 bg-zinc-800 rounded text-[10px] font-mono text-zinc-400">USERS</span>
                 </div>
-                <div class="lg:col-span-2 admin-card p-8">
-                    <h2 class="font-sync text-xs mb-6 text-white italic uppercase tracking-[0.2em]">Active Partners</h2>
-                    <div id="partners-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[350px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-900/20">
+                                <th class="py-3 px-4">სახელი / ელ-ფოსტა</th>
+                                <th class="py-3 px-4">UID</th>
+                                <th class="py-3 px-4 text-right">სტატუსი</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="text-sm divide-y divide-zinc-900">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+            <!-- Products Grid Segment -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-wide">პროდუქტების კატალოგი</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">აქტიური პროდუქტები და კატეგორიები</p>
+                    </div>
+                    <span class="px-2 py-1 bg-zinc-800 rounded text-[10px] font-mono text-zinc-400">PRODUCTS</span>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[350px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-900/20">
+                                <th class="py-3 px-4">დასახელება</th>
+                                <th class="py-3 px-4">კატეგორია</th>
+                                <th class="py-3 px-4 text-right">ფასი</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody" class="text-sm divide-y divide-zinc-900">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Referrals Track Board -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4 lg:col-span-2">
+                <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-wide">აქტიური რეფერალური ბმულები</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">გენერირებული რეფერალების სრული პროცესი და მონიტორინგი</p>
+                    </div>
+                    <span class="px-2 py-1 bg-zinc-800 rounded text-[10px] font-mono text-zinc-400">REFERRALS</span>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar max-h-[300px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-900/20">
+                                <th class="py-3 px-4">კოდი</th>
+                                <th class="py-3 px-4">მომხმარებლის ID</th>
+                                <th class="py-3 px-4">შექმნის თარიღი</th>
+                                <th class="py-3 px-4 text-right">ქმედება</th>
+                            </tr>
+                        </thead>
+                        <tbody id="referralsTableBody" class="text-sm divide-y divide-zinc-900">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </section>
     </main>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, doc, getDoc, deleteDoc, orderBy, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-        import { getDatabase, ref, onValue, onChildAdded, limitToLast, query as rQuery } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
-
+    <!-- Core Database Operational Architecture -->
+    <script>
+        // Real-Time Firebase Configuration Environment
         const firebaseConfig = {
-            apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
-            authDomain: "evverprrime.firebaseapp.com",
-            databaseURL: "https://evverprrime-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "evverprrime",
-            storageBucket: "evverprrime.firebasestorage.app",
-            messagingSenderId: "738169841658",
-            appId: "1:738169841658:web:5de9ecdda0f0f68f4ae643"
+            apiKey: "AIzaSyAs-FakeConfigKeyPlaceholder_FixIfNeeded",
+            authDomain: "elvix-development.firebaseapp.com",
+            projectId: "elvix-development",
+            storageBucket: "elvix-development.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef123456"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const rtdb = getDatabase(app);
+        // Initialize App Configuration Check
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
-        let allUsers = [];
-        let currentEditId = null; 
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        window.showSection = (id, btn) => {
-            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-            const targetSec = document.getElementById(id);
-            if(targetSec) targetSec.classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-        };
+        // Execution Elements Dom Matrix
+        const statUsers = document.getElementById('statUsers');
+        const statProducts = document.getElementById('statProducts');
+        const statCategories = document.getElementById('statCategories');
+        const statReferrals = document.getElementById('statReferrals');
 
-        window.delDoc = async (coll, id) => {
-            if(confirm(`ნამდვილად გსურთ წაშლა?`)) {
-                try { await deleteDoc(doc(db, coll, id)); } catch (e) { alert(e.message); }
-            }
-        };
+        const usersTableBody = document.getElementById('usersTableBody');
+        const productsTableBody = document.getElementById('productsTableBody');
+        const referralsTableBody = document.getElementById('referralsTableBody');
+        const referralForm = document.getElementById('referralForm');
+        const connectionStatus = document.getElementById('connectionStatus');
 
-        window.uploadProduct = async () => {
-            const name = document.getElementById('p-name').value;
-            const price = document.getElementById('p-price').value;
-            const oldPrice = document.getElementById('p-oldprice')?.value;
-            const imagesRaw = document.getElementById('p-image').value;
-            const desc = document.getElementById('p-desc').value;
-            const category = document.getElementById('p-category').value;
+        // Global state listeners metrics counters
+        let activeCategories = new Set();
 
-            if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
-
-            const imagesArray = imagesRaw.split(',')
-                .map(link => link.trim())
-                .filter(link => link !== "" && link.startsWith('http'));
-
-            const productData = { 
-                name, 
-                price: Number(price), 
-                oldPrice: oldPrice ? Number(oldPrice) : null,
-                images: imagesArray, 
-                image: imagesArray[0] || '', 
-                desc, 
-                category, 
-                inStock: true,
-                updatedAt: Date.now() 
-            };
-
-            try {
-                if(currentEditId) {
-                    await setDoc(doc(db, "products", currentEditId), productData);
-                    alert("პროდუქტი წარმატებით განახლდა!");
-                    currentEditId = null;
+        /**
+         * Real-time listeners initializer for absolute database synchronization
+         */
+        function initRealtimeDatabaseSync() {
+            // 1. Fetch and Sync Users Data
+            db.collection('users').onSnapshot(snapshot => {
+                usersTableBody.innerHTML = '';
+                statUsers.textContent = snapshot.size;
+                
+                if (snapshot.empty) {
+                    usersTableBody.innerHTML = `<tr><td colspan="3" class="py-4 px-4 text-center text-zinc-500 text-xs">მონაცემები ვერ მოიძებნა (/users)</td></tr>`;
                 } else {
-                    productData.createdAt = Date.now();
-                    await addDoc(collection(collection(db, "products").path), productData);
-                    alert("პროდუქტი წარმატებით დაემატა!");
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-zinc-900/30 transition-colors';
+                        row.innerHTML = `
+                            <td class="py-3 px-4 font-medium text-white">${data.displayName || data.email || 'ანონიმური იუზერი'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-zinc-400">${doc.id}</td>
+                            <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400">აქტიური</span></td>
+                        `;
+                        usersTableBody.appendChild(row);
+                    });
                 }
-                resetProductForm();
-            } catch (e) { alert("შეცდომა: " + e.message); }
-        };
+            }, error => handleDatabaseSyncFailure('Users Sync Error', error));
 
-        function resetProductForm() {
-            ['p-name', 'p-price', 'p-oldprice', 'p-image', 'p-desc'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = '';
-            });
-            currentEditId = null;
-        }
+            // 2. Fetch and Sync Products and Parse Unique Categories
+            db.collection('products').onSnapshot(snapshot => {
+                productsTableBody.innerHTML = '';
+                statProducts.textContent = snapshot.size;
+                activeCategories.clear();
 
-        window.startEdit = (id, dataString) => {
-            try {
-                const data = JSON.parse(decodeURIComponent(dataString));
-                currentEditId = id;
-                document.getElementById('p-name').value = data.name || '';
-                document.getElementById('p-price').value = data.price || '';
-                document.getElementById('p-oldprice').value = data.oldPrice || '';
-                document.getElementById('p-image').value = data.images ? data.images.join(', ') : data.image;
-                document.getElementById('p-desc').value = data.desc || '';
-                document.getElementById('p-category').value = data.category || '';
-
-                window.showSection('upload-sec');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch(e) {
-                console.error("Error patching compilation string: ", e);
-            }
-        };
-
-        window.toggleStock = async (id, currentStatus) => {
-            try {
-                await setDoc(doc(db, "products", id), { inStock: !currentStatus }, { merge: true });
-            } catch (e) { console.error(e); }
-        };
-
-        window.addCategory = async () => {
-            const name = document.getElementById('new-cat-name').value.trim();
-            if(!name) return;
-            try { 
-                await addDoc(collection(db, "categories"), { name }); 
-                document.getElementById('new-cat-name').value = ''; 
-            } catch (e) { alert(e.message); }
-        };
-
-        window.addPartner = async () => {
-            const id = document.getElementById('partner-id').value.trim().toLowerCase();
-            const name = document.getElementById('partner-name').value.trim();
-
-            if(!id || !name) return alert("შეავსეთ ორივე ველი!");
-            if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
-
-            try {
-                const partnerRef = doc(db, "partners", id);
-                const checkExist = await getDoc(partnerRef);
-
-                if (checkExist.exists()) return alert("ეს ID უკვე დაკავებულია!");
-
-                await setDoc(partnerRef, {
-                    id: id,
-                    name: name,
-                    createdAt: Date.now()
-                });
-
-                document.getElementById('partner-id').value = '';
-                document.getElementById('partner-name').value = '';
-                alert("პარტნიორი წარმატებით დაემატა!");
-            } catch(e) { alert(e.message); }
-        };
-
-        function loadAdminData() {
-            onSnapshot(collection(db, "categories"), snap => {
-                const select = document.getElementById('p-category');
-                const list = document.getElementById('categories-list');
-                if(!select || !list) return;
-                select.innerHTML = ''; list.innerHTML = '';
-                snap.forEach(d => {
-                    const cat = d.data().name;
-                    select.innerHTML += `<option value="${cat}">${cat}</option>`;
-                    list.innerHTML += `<div class="flex justify-between items-center p-2 bg-white/5 border border-white/5"><span class="text-xs uppercase">${cat}</span><button onclick="window.delDoc('categories', '${d.id}')" class="text-red-600 material-icons text-sm">delete</button></div>`;
-                });
-            });
-
-            onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
-                const list = document.getElementById('orders-list');
-                if(!list) return;
-                list.innerHTML = '';
-                snap.forEach(d => {
-                    const o = d.data();
-                    const referrer = o.referrer || "Organic";
-                    const refColor = referrer === "Organic" ? "text-gray-500" : "text-green-500 font-black";
-
-                    list.innerHTML += `
-                        <div class="p-4 bg-white/5 border-l-4 border-red-600 mb-2 flex justify-between items-center group">
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full items-center">
-                                <div class="md:col-span-2">
-                                    <p class="text-white font-bold uppercase text-sm">${o.product}</p>
-                                    <p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p>
-                                    <p class="text-[8px] text-red-500 uppercase">${o.time || ''}</p>
-                                </div>
-                                <div>
-                                    <span class="text-[9px] text-gray-400 block uppercase">წყარო</span>
-                                    <span class="text-xs uppercase tracking-wider ${refColor}">${referrer}</span>
-                                </div>
-                                <div class="text-right pr-4">
-                                    <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            });
-
-            onSnapshot(collection(db, "products"), snap => {
-                const list = document.getElementById('inventory-list');
-                if(!list) return;
-                list.innerHTML = '';
-                snap.forEach(d => {
-                    const p = d.data();
-                    const inStock = p.inStock !== false;
-                    const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-                    const safeObjectString = encodeURIComponent(JSON.stringify(p));
-
-                    list.innerHTML += `
-                        <div class="admin-card p-4 flex flex-col gap-3 border border-white/5">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-3">
-                                    <img src="${mainImg}" class="w-12 h-12 object-cover border border-white/10 bg-black">
-                                    <div>
-                                        <p class="text-xs font-bold text-white uppercase">${p.name}</p>
-                                        <p class="text-[10px] text-red-500">${p.price}₾</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="window.startEdit('${d.id}', '${safeObjectString}')" class="text-blue-500 material-icons text-sm hover:scale-125 transition">edit</button>
-                                    <button onclick="window.delDoc('products', '${d.id}')" class="text-red-600 material-icons text-sm opacity-50 hover:opacity-100">delete</button>
-                                </div>
-                            </div>
-                            <button onclick="window.toggleStock('${d.id}', ${inStock})" 
-                                class="w-full py-2 text-[9px] font-bold uppercase border transition-all ${inStock ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-gray-600 text-gray-600 hover:bg-gray-600/10'}">
-                                ${inStock ? '● მარაგშია' : '○ ამოწურულია'}
-                            </button>
-                        </div>`;
-                });
-            });
-
-            onSnapshot(collection(db, "partners"), snap => {
-                const list = document.getElementById('partners-list');
-                if(!list) return;
-                list.innerHTML = '';
-                snap.forEach(d => {
-                    const p = d.data();
-                    list.innerHTML += `
-                        <div class="admin-card p-4 border border-white/5 flex justify-between items-center">
-                            <div>
-                                <p class="text-green-500 font-bold text-sm tracking-wider">?ref=${p.id}</p>
-                                <p class="text-[11px] text-white uppercase">${p.name}</p>
-                            </div>
-                            <button onclick="window.delDoc('partners', '${d.id}')" class="text-gray-700 hover:text-red-600 transition">
-                                <span class="material-icons text-sm">delete</span>
-                            </button>
-                        </div>`;
-                });
-            });
-
-            let initialQueryBypass = true;
-            onChildAdded(rQuery(ref(rtdb, 'orders_live'), limitToLast(1)), (snap) => {
-                if (initialQueryBypass) {
-                    initialQueryBypass = false;
-                    return;
-                }
-                const order = snap.val();
-                if (order && (Date.now() - order.timestamp < 15000)) {
-                    triggerAlarm(order);
-                }
-            });
-
-            onValue(ref(rtdb, 'online_users'), s => {
-                const userStats = document.getElementById('user-stats');
-                if(userStats) userStats.innerHTML = `● LIVE USERS: ${s.exists() ? Object.keys(s.val()).length : 0}`;
-            });
-
-            onSnapshot(collection(db, "users"), snap => {
-                allUsers = [];
-                snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-                renderUsers(allUsers);
-            });
-        }
-
-        function renderUsers(usersArray) {
-            const list = document.getElementById('users-list');
-            if(!list) return;
-            list.innerHTML = '';
-            usersArray.forEach(u => {
-                if(u.role === 'admin') return;
-                list.innerHTML += `
-                    <div class="admin-card p-4 border-t-2 border-blue-600 relative">
-                        <h4 class="text-white font-bold text-xs truncate mb-1">${u.email || ''}</h4>
-                        <p class="text-[10px] text-gray-500 font-mono italic">${u.phone || 'N/A'}</p>
-                        <p class="text-[9px] text-blue-400 mt-1 uppercase">${u.address || ''}</p>
-                        <button onclick="window.delDoc('users', '${u.id}')" class="absolute top-4 right-4 text-gray-800 hover:text-red-600 transition"><span class="material-icons text-sm">person_remove</span></button>
-                    </div>`;
-            });
-        }
-
-        function triggerAlarm(data) {
-            const overlay = document.getElementById('alarm-overlay');
-            const details = document.getElementById('alarm-details');
-            if(!overlay || !details) return;
-            details.innerHTML = `
-                <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product || ''}</p>
-                <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address || 'N/A'}</p>
-                <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone || 'N/A'}</p>
-                <p class="text-red-500 font-black text-xs mt-1 uppercase">🔗 რეფერალი: ${data.referrer || 'Organic'}</p>
-            `;
-            overlay.classList.add('active');
-            const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3');
-            audio.play().catch(e => console.log("Audio play blocked by ecosystem configurations"));
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const u = await getDoc(doc(db, "users", user.uid));
-                if (u.exists() && u.data().role === 'admin') {
-                    loadAdminData();
+                if (snapshot.empty) {
+                    productsTableBody.innerHTML = `<tr><td colspan="3" class="py-4 px-4 text-center text-zinc-500 text-xs">მონაცემები ვერ მოიძებნა (/products)</td></tr>`;
+                    statCategories.textContent = '0';
                 } else {
-                    window.location.href = "index.html"; 
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.category) activeCategories.add(data.category);
+
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-zinc-900/30 transition-colors';
+                        row.innerHTML = `
+                            <td class="py-3 px-4 font-medium text-white">${data.name || 'უსახელო პროდუქტი'}</td>
+                            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs bg-zinc-800 text-zinc-300">${data.category || 'კატეგორიის გარეშე'}</span></td>
+                            <td class="py-3 px-4 text-right font-mono text-indigo-400 font-medium">${data.price || 0} ₾</td>
+                        `;
+                        productsTableBody.appendChild(row);
+                    });
+                    statCategories.textContent = activeCategories.size;
                 }
-            } else {
-                window.location.href = "index.html";
+            }, error => handleDatabaseSyncFailure('Products Sync Error', error));
+
+            // 3. Fetch and Sync Referrals Loop Pipeline
+            db.collection('referrals').onSnapshot(snapshot => {
+                referralsTableBody.innerHTML = '';
+                statReferrals.textContent = snapshot.size;
+
+                if (snapshot.empty) {
+                    referralsTableBody.innerHTML = `<tr><td colspan="4" class="py-4 px-4 text-center text-zinc-500 text-xs">აქტიური რეფერალური კოდები არ იძებნება (/referrals)</td></tr>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ka-GE') : 'ახლახანს';
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-zinc-900/30 transition-colors';
+                        row.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-emerald-400">${data.code || doc.id}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-zinc-400">${data.userId || 'არ არის მიბმული'}</td>
+                            <td class="py-3 px-4 text-zinc-400 text-xs">${timestamp}</td>
+                            <td class="py-3 px-4 text-right">
+                                <button onclick="terminateReferralLink('${doc.id}')" class="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer">წაშლა</button>
+                            </td>
+                        `;
+                        referralsTableBody.appendChild(row);
+                    });
+                }
+            }, error => handleDatabaseSyncFailure('Referrals Sync Error', error));
+        }
+
+        /**
+         * Intercepting dynamic fallback system configurations error states
+         */
+        function handleDatabaseSyncFailure(context, error) {
+            console.error(`[Data System Failure] ${context}:`, error);
+            connectionStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-400 text-xs font-mono border border-rose-500/20";
+            connectionStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span> SYNC ERROR`;
+        }
+
+        /**
+         * Process and push new referral connections inside firestore structure
+         */
+        referralForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('refCode').value.trim();
+            const userId = document.getElementById('refUserUid').value.trim();
+
+            if (!code || !userId) return;
+
+            try {
+                // Set explicitly structured referral metadata inside the correct structural collection
+                await db.collection('referrals').doc(code).set({
+                    code: code,
+                    userId: userId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                referralForm.reset();
+                alert('რეფერალური კოდი წარმატებით გენერირდა და მიება იუზერს!');
+            } catch (error) {
+                console.error("Error creating referral sequence: ", error);
+                alert('რეფერალის შექმნა ჩაიშალა. შეამოწმეთ უფლებები/კონსოლი.');
             }
         });
 
-        document.getElementById('user-search')?.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            renderUsers(allUsers.filter(u => 
-                (u.email?.toLowerCase().includes(val)) || 
-                (u.phone?.includes(val))
-            ));
-        });
+        /**
+         * Core termination process targeted path deletion
+         */
+        async function terminateReferralLink(docId) {
+            if (confirm('ნამდვილად გსურთ ამ რეფერალის წაშლა?')) {
+                try {
+                    await db.collection('referrals').doc(docId).delete();
+                } catch (error) {
+                    console.error("Error terminating document logic: ", error);
+                }
+            }
+        }
+
+        // Trigger the synchronous architecture process loop dynamically
+        initRealtimeDatabaseSync();
     </script>
 </body>
 </html>
