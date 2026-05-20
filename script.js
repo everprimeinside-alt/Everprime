@@ -24,7 +24,6 @@ let currentCategory = 'all';
 
 // --- 1. ინტერაქტიული ელემენტები და რეფერალის შემოწმება ---
 document.addEventListener("DOMContentLoaded", () => {
-    // უსაფრთხო შემოწმება საიტის ჩატვირთვისას
     verifyReferralStatus();
 
     setTimeout(() => {
@@ -36,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2000);
 });
 
-// რეფერალის შემოწმების უსაფრთხო ფუნქცია
 async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const referralId = urlParams.get('ref');
@@ -47,24 +45,17 @@ async function verifyReferralStatus() {
         const refDocRef = doc(db, "partners", referralId);
         const refSnapshot = await getDoc(refDocRef);
 
-        // თუ რეფერალი წაშლილია ადმინკიდან ან ფიზიკურად არ არსებობს ბაზაში
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
-
-            // მომხმარებლისთვის შეტყობინების ჩვენება
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
-
-            // გადამისამართება სუფთა (საწყის) ბმულზე
             setTimeout(() => {
                 window.location.href = cleanURL;
             }, 2500);
         } else {
-            // თუ რეფერალი ვალიდურია, ვინახავთ localStorage-ში შეკვეთისთვის
-            localStorage.setItem('prime_referrer', referralId);
+            sessionStorage.setItem('activeRef', referralId);
         }
     } catch (error) {
-        // თუ უფლებების გამო მაინც მოხდა შეცდომა, საიტი რომ არ გაითიშოს, უბრალოდ ლოგავს კონსოლში
         console.log("Referral track check bypassed or unauthorized: ", error.message);
     }
 }
@@ -99,10 +90,10 @@ onAuthStateChanged(auth, async (user) => {
         onDisconnect(userStatusRef).remove();
 
         if(authSec) authSec.classList.add('hidden');
-        navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
+        if(navUser) navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
     } else {
-        navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
+        if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
     }
 });
 
@@ -167,7 +158,7 @@ window.filterProducts = () => {
                         <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600' : 'bg-red-600'}">
                             ${inStock ? 'მარაგშია' : 'ამოწურულია'}
                         </span>
-                        <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
+                        <img src="${mainImg}" alt="${p.name}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500">
                     </div>
                     <div class="flex justify-between items-start mb-4">
                         <div>
@@ -236,16 +227,19 @@ window.showDetails = (id) => {
             setTimeout(() => {
                 imgEl.src = images[currentIdx];
                 imgEl.style.opacity = '1';
-                counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
+                if(counterEl) counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
             }, 200);
         };
         document.getElementById('prev-img').onclick = () => { currentIdx = (currentIdx - 1 + images.length) % images.length; update(); };
         document.getElementById('next-img').onclick = () => { currentIdx = (currentIdx + 1) % images.length; update(); };
     }
-    modal.style.display = 'flex';
+    if(modal) modal.style.display = 'flex';
 };
 
-window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
+window.closeDetails = () => { 
+    const modal = document.getElementById('details-modal-overlay');
+    if(modal) modal.style.display = 'none'; 
+};
 
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
@@ -254,11 +248,10 @@ window.order = async (id, name) => {
 
     const uDoc = await getDoc(doc(db, "users", user.uid));
     const data = uDoc.data();
-    if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+    if(!data || !data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
     window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
-        const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
-
+        const referrerId = sessionStorage.getItem('activeRef') || 'Organic';
         const orderInfo = { 
             product: name, email: user.email, phone: data.phone, address: data.address, 
             timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'),
@@ -268,7 +261,7 @@ window.order = async (id, name) => {
         await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
         const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
+        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 რეფერალი: ${referrerId}`;
 
         const mainGroupId = '-1003731895302';
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`);
@@ -299,8 +292,10 @@ window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.ge
 async function loadUserProfile(uid) {
     const d = await getDoc(doc(db, "users", uid));
     if(d.exists()) {
-        document.getElementById('u-phone-upd').value = d.data().phone || '';
-        document.getElementById('u-address-upd').value = d.data().address || '';
+        const pInput = document.getElementById('u-phone-upd');
+        const aInput = document.getElementById('u-address-upd');
+        if(pInput) pInput.value = d.data().phone || '';
+        if(aInput) aInput.value = d.data().address || '';
     }
 }
 
