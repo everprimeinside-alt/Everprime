@@ -5,8 +5,8 @@
     font-style: normal;
     font-display: swap;
 }
-* {
-    font-family: 'BPG Phone Sans Bold', sans-serif;
+*{
+    font-family: 'BPG Phone Sans Bold';
     font-weight: bold;
 }
 body { 
@@ -40,7 +40,7 @@ body {
 .buy-btn {
     width: 100%; padding: 10px 0; background: #fff; color: #000;
     font-weight: bold; text-transform: uppercase;
-    font-style: italic; transition: 0.3s; border: none; cursor: pointer;
+    font-style: italic; font-size: 14px; transition: 0.3s; border: none; cursor: pointer;
     font-size: 17px;
 }
 .buy-btn:hover { background: #FF0000; color: #fff; }
@@ -112,7 +112,6 @@ textarea:focus {
     border-color: #FF0000 !important;
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.3) !important;
 }
-
 .cat-btn {
     padding: 10px 24px;
     background: transparent;
@@ -139,7 +138,6 @@ textarea:focus {
     border-color: #FF0000;
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
 }
-
 #custom-preloader {
     position: fixed;
     top: 0;
@@ -165,10 +163,9 @@ textarea:focus {
     opacity: 0 !important;
     visibility: hidden !important;
 }
-
 .prime-slider-wrapper {
     position: fixed;
-    top: 80px; 
+    top: 80px;
     left: 0;
     width: 100%;
     background: rgba(2, 2, 2, 0.85);
@@ -229,8 +226,121 @@ textarea:focus {
     flex-shrink: 0;
     transition: all 0.3s;
 }
-.prime-slider-link:hover { border-color: #FF0000; color: #fff; }
 .prime-slider-link.active { border-color: #FF0000; color: #fff; background: rgba(255, 0, 0, 0.1); }
 #modal-slider-img {
     transition: opacity 0.3s ease-in-out;
+}
+
+/* Neon 3D Section Structural Refinement */
+.neon-3d-section {
+    position: relative;
+    width: 100%;
+    height: auto; 
+    padding: 80px 0; 
+    background: #020204;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    perspective: 2000px;
+}
+
+.neon-3d-section .stage {
+    width: 100%;
+    height: 220px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.neon-3d-section .carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: rotateCyber 22s infinite linear;
+    will-change: transform;
+}
+
+.neon-3d-section .item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 200px;       
+    height: 55px;     
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;  
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, rgba(255, 0, 60, 0.03) 0%, rgba(255, 0, 60, 0.08) 100%);
+    border: 1px solid rgba(255, 0, 60, 0.25);
+    text-shadow: 0 0 8px #ff003c;
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.1), inset 0 0 10px rgba(255, 0, 60, 0.15);
+    backface-visibility: hidden;
+    -webkit-box-reflect: below 4px linear-gradient(transparent, rgba(255, 0, 60, 0.08));
+}
+
+.neon-3d-section .item::before,
+.neon-3d-section .item::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 2px solid #ff003c;
+    pointer-events: none;
+}
+.neon-3d-section .item::before {
+    top: -1px;
+    left: -1px;
+    border-right: none;
+    border-bottom: none;
+}
+.neon-3d-section .item::after {
+    bottom: -1px;
+    right: -1px;
+    border-left: none;
+    border-top: none;
+}
+
+/* 3D Geometry Transforms using fixed pixel calculations for stability across displays */
+.neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(280px); }
+.neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(280px); }
+.neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(280px); }
+.neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(280px); }
+.neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(280px); }
+.neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(280px); }
+
+@keyframes rotateCyber {
+    0% { transform: rotateX(-10deg) rotateY(0deg); }
+    100% { transform: rotateX(-10deg) rotateY(360deg); }
+}
+
+.neon-3d-section .floor-glow {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background: radial-gradient(circle, rgba(255, 0, 60, 0.15) 0%, transparent 70%);
+    transform: rotateX(90deg);
+    z-index: 1;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .neon-3d-section .item {
+        width: 140px;
+        height: 45px;
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+    .neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(180px); }
+    .neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(180px); }
+    .neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(180px); }
+    .neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(180px); }
+    .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(180px); }
+    .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(180px); }
 }
