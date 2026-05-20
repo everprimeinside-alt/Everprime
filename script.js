@@ -24,7 +24,6 @@ let currentCategory = 'all';
 
 // --- 1. ინტერაქტიული ელემენტები და რეფერალის შემოწმება ---
 document.addEventListener("DOMContentLoaded", () => {
-    // უსაფრთხო შემოწმება საიტის ჩატვირთვისას
     verifyReferralStatus();
 
     setTimeout(() => {
@@ -36,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2000);
 });
 
-// რეფერალის შემოწმების უსაფრთხო ფუნქცია
 async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const referralId = urlParams.get('ref');
@@ -47,24 +45,17 @@ async function verifyReferralStatus() {
         const refDocRef = doc(db, "partners", referralId);
         const refSnapshot = await getDoc(refDocRef);
 
-        // თუ რეფერალი წაშლილია ადმინკიდან ან ფიზიკურად არ არსებობს ბაზაში
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
-
-            // მომხმარებლისთვის შეტყობინების ჩვენება
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
-
-            // გადამისამართება სუფთა (საწყის) ბმულზე
             setTimeout(() => {
                 window.location.href = cleanURL;
             }, 2500);
         } else {
-            // თუ რეფერალი ვალიდურია, ვინახავთ localStorage-ში შეკვეთისთვის
             localStorage.setItem('prime_referrer', referralId);
         }
     } catch (error) {
-        // თუ უფლებების გამო მაინც მოხდა შეცდომა, საიტი რომ არ გაითიშოს, უბრალოდ ლოგავს კონსოლში
         console.log("Referral track check bypassed or unauthorized: ", error.message);
     }
 }
@@ -102,7 +93,7 @@ onAuthStateChanged(auth, async (user) => {
         navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
     } else {
-        navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
+        if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
     }
 });
 
@@ -143,7 +134,7 @@ window.filterProducts = () => {
     const sort = sortSelect ? sortSelect.value : "default";
 
     let filtered = allProducts.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search);
+        const matchesSearch = p.name ? p.name.toLowerCase().includes(search) : false;
         const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
         return matchesSearch && matchesCategory;
     });
@@ -171,7 +162,7 @@ window.filterProducts = () => {
                     </div>
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name}</h3>
+                            <h3 class="text-[12px] font-bold uppercase italic text-white">${p.name || ''}</h3>
                             <p class="text-[9px] text-gray-500 uppercase">${p.category || ''}</p>
                         </div>
                         <div class="text-right">
@@ -182,7 +173,7 @@ window.filterProducts = () => {
                 </div>
                 <div class="mt-auto flex flex-col gap-1">
                     <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
-                    <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}')"` : 'disabled'} class="buy-btn">
+                    <button ${inStock ? `onclick="window.order('${p.id}')"` : 'disabled'} class="buy-btn">
                         ${inStock ? 'შეკვეთა' : 'არ არის მარაგში'}
                     </button>
                 </div>
@@ -214,14 +205,14 @@ window.showDetails = (id) => {
                 ` : ''}
             </div>
             <div class="text-left">
-                <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name}</h2>
+                <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name || ''}</h2>
                 <div class="flex items-baseline gap-3 mb-4">
                     <span class="text-white font-bold text-3xl">${p.price}₾</span>
                     ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
                 </div>
                 <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
                 <div class="flex flex-col gap-2">
-                    <button ${inStock ? `onclick="window.order('${p.id}', '${p.name}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
+                    <button ${inStock ? `onclick="window.order('${p.id}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
                     <button onclick="window.closeDetails()" class="details-btn">დახურვა</button>
                 </div>
             </div>
@@ -248,14 +239,18 @@ window.showDetails = (id) => {
 window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
 
 // --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
-window.order = async (id, name) => {
+window.order = async (id) => {
     const user = auth.currentUser;
     if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
+
+    const p = allProducts.find(item => item.id === id);
+    if(!p) return;
+    const name = p.name || '';
 
     try {
         const uDoc = await getDoc(doc(db, "users", user.uid));
         const data = uDoc.data();
-        if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+        if(!data || !data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
         window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
             try {
@@ -272,25 +267,21 @@ window.order = async (id, name) => {
                     referrer: referrerId
                 };
 
-                // მონაცემების შენახვა ბაზაში
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                // ტელეგრამის შეტყობინების გაგზავნა (განახლებული და გასწორებული ვერსია)
                 const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-                const mainGroupId = '-1003731895302'; // ახალი, სწორი ID
-                const fitrockGroupId = '-10023886942000'; 
+                const mainGroupId = '-1003731895302';
+                const fitrockGroupId = '-1002388694200'; 
 
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-                // გაგზავნა მთავარ ჯგუფში no-cors რეჟიმით
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`, {
-                    mode: 'no-cors' // ბლოკავს CORS შეცდომას ბრაუზერში
+                    mode: 'no-cors'
                 })
                 .then(() => console.log("Telegram main group message sent successfully"))
                 .catch(e => console.log("Telegram main group error:", e));
 
-                // გაგზავნა მეორე ჯგუფში, თუ პროდუქტი შეიცავს 'fitrock'-ს
                 if (name.toLowerCase().includes('fitrock')) {
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`, {
                         mode: 'no-cors'
@@ -312,7 +303,8 @@ window.order = async (id, name) => {
 // --- 7. დამხმარე UI ფუნქციები ---
 function renderPagination(total) {
     const container = document.getElementById('pagination-bottom');
-    if (!container || total <= 1) { if(container) container.innerHTML = ''; return; }
+    if (!container) return;
+    if (total <= 1) { container.innerHTML = ''; return; }
     container.innerHTML = '';
     for (let i = 1; i <= total; i++) {
         const active = i === currentPage ? 'bg-red-600 text-white' : 'text-gray-500 border-white/10';
@@ -326,8 +318,9 @@ window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.ge
 async function loadUserProfile(uid) {
     const d = await getDoc(doc(db, "users", uid));
     if(d.exists()) {
-        document.getElementById('u-phone-upd').value = d.data().phone || '';
-        document.getElementById('u-address-upd').value = d.data().address || '';
+        const data = d.data();
+        if(document.getElementById('u-phone-upd')) document.getElementById('u-phone-upd').value = data.phone || '';
+        if(document.getElementById('u-address-upd')) document.getElementById('u-address-upd').value = data.address || '';
     }
 }
 
