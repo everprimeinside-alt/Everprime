@@ -118,7 +118,7 @@
                             </tr>
                         </thead>
                         <tbody id="usersTableBody" class="text-sm divide-y divide-zinc-900">
-                            <!-- Dynamically loaded -->
+                            <tr><td colspan="3" class="py-4 px-4 text-center text-zinc-500 text-xs animate-pulse">იტვირთება მონაცემები...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -143,7 +143,7 @@
                             </tr>
                         </thead>
                         <tbody id="productsTableBody" class="text-sm divide-y divide-zinc-900">
-                            <!-- Dynamically loaded -->
+                            <tr><td colspan="3" class="py-4 px-4 text-center text-zinc-500 text-xs animate-pulse">იტვირთება მონაცემები...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -169,7 +169,7 @@
                             </tr>
                         </thead>
                         <tbody id="referralsTableBody" class="text-sm divide-y divide-zinc-900">
-                            <!-- Dynamically loaded -->
+                            <tr><td colspan="4" class="py-4 px-4 text-center text-zinc-500 text-xs animate-pulse">იტვირთება მონაცემები...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -217,8 +217,11 @@
          * Real-time listeners initializer for absolute database synchronization
          */
         function initRealtimeDatabaseSync() {
+            console.log("Initializing real-time Firestore listeners...");
+
             // 1. Fetch and Sync Users Data
             db.collection('users').onSnapshot(snapshot => {
+                console.log("Users snapshot received. Size:", snapshot.size);
                 usersTableBody.innerHTML = '';
                 statUsers.textContent = snapshot.size;
                 
@@ -230,17 +233,20 @@
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-zinc-900/30 transition-colors';
                         row.innerHTML = `
-                            <td class="py-3 px-4 font-medium text-white">${data.displayName || data.email || 'ანონიმური იუზერი'}</td>
+                            <td class="py-3 px-4 font-medium text-white">${data.displayName || data.email || data.name || 'ანონიმური იუზერი'}</td>
                             <td class="py-3 px-4 font-mono text-xs text-zinc-400">${doc.id}</td>
                             <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400">აქტიური</span></td>
                         `;
                         usersTableBody.appendChild(row);
                     });
                 }
-            }, error => handleDatabaseSyncFailure('Users Sync Error', error));
+            }, error => {
+                handleDatabaseSyncFailure('Users Sync Error', error);
+            });
 
             // 2. Fetch and Sync Products and Parse Unique Categories
             db.collection('products').onSnapshot(snapshot => {
+                console.log("Products snapshot received. Size:", snapshot.size);
                 productsTableBody.innerHTML = '';
                 statProducts.textContent = snapshot.size;
                 activeCategories.clear();
@@ -256,7 +262,7 @@
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-zinc-900/30 transition-colors';
                         row.innerHTML = `
-                            <td class="py-3 px-4 font-medium text-white">${data.name || 'უსახელო პროდუქტი'}</td>
+                            <td class="py-3 px-4 font-medium text-white">${data.name || data.title || 'უსახელო პროდუქტი'}</td>
                             <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs bg-zinc-800 text-zinc-300">${data.category || 'კატეგორიის გარეშე'}</span></td>
                             <td class="py-3 px-4 text-right font-mono text-indigo-400 font-medium">${data.price || 0} ₾</td>
                         `;
@@ -264,10 +270,13 @@
                     });
                     statCategories.textContent = activeCategories.size;
                 }
-            }, error => handleDatabaseSyncFailure('Products Sync Error', error));
+            }, error => {
+                handleDatabaseSyncFailure('Products Sync Error', error);
+            });
 
             // 3. Fetch and Sync Referrals Loop Pipeline
             db.collection('referrals').onSnapshot(snapshot => {
+                console.log("Referrals snapshot received. Size:", snapshot.size);
                 referralsTableBody.innerHTML = '';
                 statReferrals.textContent = snapshot.size;
 
@@ -281,7 +290,7 @@
                         row.className = 'hover:bg-zinc-900/30 transition-colors';
                         row.innerHTML = `
                             <td class="py-3 px-4 font-mono font-bold text-emerald-400">${data.code || doc.id}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-zinc-400">${data.userId || 'არ არის მიბმული'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-zinc-400">${data.userId || data.uid || 'არ არის მიბმული'}</td>
                             <td class="py-3 px-4 text-zinc-400 text-xs">${timestamp}</td>
                             <td class="py-3 px-4 text-right">
                                 <button onclick="terminateReferralLink('${doc.id}')" class="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer">წაშლა</button>
@@ -290,7 +299,9 @@
                         referralsTableBody.appendChild(row);
                     });
                 }
-            }, error => handleDatabaseSyncFailure('Referrals Sync Error', error));
+            }, error => {
+                handleDatabaseSyncFailure('Referrals Sync Error', error);
+            });
         }
 
         /**
