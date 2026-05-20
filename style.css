@@ -40,7 +40,7 @@ body {
 .buy-btn {
     width: 100%; padding: 10px 0; background: #fff; color: #000;
     font-weight: bold; text-transform: uppercase;
-    font-style: italic; font-size: 14px; transition: 0.3s; border: none; cursor: pointer;
+    font-style: italic; transition: 0.3s; border: none; cursor: pointer;
     font-size: 17px;
 }
 .buy-btn:hover { background: #FF0000; color: #fff; }
