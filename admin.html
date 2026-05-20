@@ -20,11 +20,11 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #ff0000; }
-        
+
         .admin-section { display: none; }
         .admin-section.active { display: block; }
         .nav-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
-        
+
         input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
         input:focus, textarea:focus, select:focus { border-color: #dc2626 !important; outline: none; }
         option { background: #050505; color: white; }
@@ -70,7 +70,7 @@
 
         <section id="upload-sec" class="admin-section">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                
+
                 <div class="admin-card p-8 border-l-4 border-red-600">
                     <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Product Details</h2>
                     <div class="grid grid-cols-1 gap-5">
@@ -78,7 +78,7 @@
                             <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">დასახელება</label>
                             <input id="p-name" type="text" placeholder="მაგ: Whey Protein" class="w-full p-3 text-sm">
                         </div>
-                        
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">მიმდინარე ფასი (₾)</label>
@@ -176,7 +176,8 @@
         const rtdb = getDatabase(app);
 
         let allUsers = [];
-        let currentEditId = null; 
+        let currentEditId = null;
+        let productsRegistry = {};
 
         window.showSection = (id, btn) => {
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
@@ -198,7 +199,7 @@
             const imagesRaw = document.getElementById('p-image').value;
             const desc = document.getElementById('p-desc').value;
             const category = document.getElementById('p-category').value;
-            
+
             if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
 
             const imagesArray = imagesRaw.split(',')
@@ -219,6 +220,13 @@
 
             try {
                 if(currentEditId) {
+                    const existingRef = doc(db, "products", currentEditId);
+                    const existingSnap = await getDoc(existingRef);
+                    if (existingSnap.exists() && existingSnap.data().createdAt) {
+                        productData.createdAt = existingSnap.data().createdAt;
+                    } else {
+                        productData.createdAt = Date.now();
+                    }
                     await setDoc(doc(db, "products", currentEditId), productData);
                     alert("პროდუქტი წარმატებით განახლდა!");
                     currentEditId = null;
@@ -239,15 +247,17 @@
             currentEditId = null;
         }
 
-        window.startEdit = (id, data) => {
+        window.startEdit = (id) => {
+            const data = productsRegistry[id];
+            if (!data) return;
             currentEditId = id;
             document.getElementById('p-name').value = data.name || '';
             document.getElementById('p-price').value = data.price || '';
             document.getElementById('p-oldprice').value = data.oldPrice || '';
-            document.getElementById('p-image').value = data.images ? data.images.join(', ') : data.image;
+            document.getElementById('p-image').value = data.images ? data.images.join(', ') : (data.image || '');
             document.getElementById('p-desc').value = data.desc || '';
             document.getElementById('p-category').value = data.category || '';
-            
+
             window.showSection('upload-sec');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
@@ -270,7 +280,7 @@
         window.addPartner = async () => {
             const id = document.getElementById('partner-id').value.trim().toLowerCase();
             const name = document.getElementById('partner-name').value.trim();
-            
+
             if(!id || !name) return alert("შეავსეთ ორივე ველი!");
             if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
 
@@ -283,7 +293,7 @@
                     name: name,
                     createdAt: Date.now()
                 });
-                
+
                 document.getElementById('partner-id').value = '';
                 document.getElementById('partner-name').value = '';
                 alert("პარტნიორი წარმატებით დაემატა!");
@@ -336,11 +346,13 @@
                 const list = document.getElementById('inventory-list');
                 if(!list) return;
                 list.innerHTML = '';
+                productsRegistry = {};
                 snap.forEach(d => {
                     const p = d.data();
+                    productsRegistry[d.id] = p;
                     const inStock = p.inStock !== false;
                     const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-                    
+
                     list.innerHTML += `
                         <div class="admin-card p-4 flex flex-col gap-3 border border-white/5">
                             <div class="flex justify-between items-start">
@@ -352,7 +364,7 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick='window.startEdit("${d.id}", ${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-blue-500 material-icons text-sm hover:scale-125 transition">edit</button>
+                                    <button onclick='window.startEdit("${d.id}")' class="text-blue-500 material-icons text-sm hover:scale-125 transition">edit</button>
                                     <button onclick="window.delDoc('products', '${d.id}')" class="text-red-600 material-icons text-sm opacity-50 hover:opacity-100">delete</button>
                                 </div>
                             </div>
@@ -408,7 +420,7 @@
                 if(u.role === 'admin') return;
                 list.innerHTML += `
                     <div class="admin-card p-4 border-t-2 border-blue-600 relative">
-                        <h4 class="text-white font-bold text-xs truncate mb-1">${u.email}</h4>
+                        <h4 class="text-white font-bold text-xs truncate mb-1">${u.email || ''}</h4>
                         <p class="text-[10px] text-gray-500 font-mono italic">${u.phone || 'N/A'}</p>
                         <p class="text-[9px] text-blue-400 mt-1 uppercase">${u.address || ''}</p>
                         <button onclick="window.delDoc('users', '${u.id}')" class="absolute top-4 right-4 text-gray-800 hover:text-red-600 transition"><span class="material-icons text-sm">person_remove</span></button>
@@ -421,9 +433,9 @@
             const details = document.getElementById('alarm-details');
             if(!overlay || !details) return;
             details.innerHTML = `
-                <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product}</p>
-                <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address}</p>
-                <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone}</p>
+                <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product || ''}</p>
+                <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address || ''}</p>
+                <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone || ''}</p>
                 <p class="text-red-500 font-black text-xs mt-1 uppercase">🔗 რეფერალი: ${data.referrer || 'Organic'}</p>
             `;
             overlay.classList.add('active');
