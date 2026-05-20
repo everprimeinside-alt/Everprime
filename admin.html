@@ -20,11 +20,11 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #ff0000; }
-        
+
         .admin-section { display: none; }
         .admin-section.active { display: block; }
         .nav-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
-        
+
         input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
         input:focus, textarea:focus, select:focus { border-color: #dc2626 !important; outline: none; }
         option { background: #050505; color: white; }
@@ -48,11 +48,11 @@
     </header>
 
     <nav class="flex flex-wrap gap-2 mb-10">
-        <button onclick="showSection('orders-sec', this)" class="nav-btn active border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">შეკვეთები</button>
-        <button onclick="showSection('users-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">მომხმარებლები</button>
-        <button onclick="showSection('upload-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პროდუქტის დამატება</button>
-        <button onclick="showSection('delete-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">ინვენტარი</button>
-        <button onclick="showSection('partners-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პარტნიორები</button>
+        <button onclick="window.showSection('orders-sec', this)" class="nav-btn active border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">შეკვეთები</button>
+        <button onclick="window.showSection('users-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">მომხმარებლები</button>
+        <button onclick="window.showSection('upload-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პროდუქტის დამატება</button>
+        <button onclick="window.showSection('delete-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">ინვენტარი</button>
+        <button onclick="window.showSection('partners-sec', this)" class="nav-btn border border-white/10 px-4 py-2 text-[10px] uppercase font-bold transition">პარტნიორები</button>
     </nav>
 
     <main>
@@ -70,7 +70,6 @@
 
         <section id="upload-sec" class="admin-section">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                
                 <div class="admin-card p-8 border-l-4 border-red-600">
                     <h2 class="font-sync text-xs mb-8 text-white italic uppercase tracking-[0.2em]">Product Details</h2>
                     <div class="grid grid-cols-1 gap-5">
@@ -78,7 +77,6 @@
                             <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">დასახელება</label>
                             <input id="p-name" type="text" placeholder="მაგ: Whey Protein" class="w-full p-3 text-sm">
                         </div>
-                        
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">მიმდინარე ფასი (₾)</label>
@@ -89,22 +87,18 @@
                                 <input id="p-oldprice" type="number" placeholder="0.00" class="w-full p-3 text-sm">
                             </div>
                         </div>
-
                         <div>
                             <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">კატეგორია</label>
                             <select id="p-category" class="w-full p-3 text-sm"></select>
                         </div>
-
                         <div>
                             <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">სურათების ლინკები (გამოყავით მძიმით ",")</label>
                             <input id="p-image" type="text" placeholder="link1, link2, link3" class="w-full p-3 text-sm">
                         </div>
-
                         <div>
                             <label class="text-[10px] text-gray-500 uppercase font-bold block mb-2">აღწერა</label>
                             <textarea id="p-desc" rows="4" placeholder="პროდუქტის აღწერა..." class="w-full p-3 text-sm"></textarea>
                         </div>
-
                         <button onclick="window.uploadProduct()" class="w-full bg-red-600 py-4 font-sync text-[10px] font-black uppercase italic hover:bg-red-700 transition">
                             პროდუქტის შენახვა
                         </button>
@@ -119,7 +113,6 @@
                     </div>
                     <div id="categories-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
                 </div>
-
             </div>
         </section>
 
@@ -155,307 +148,318 @@
     </main>
 
     <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, query, doc, getDoc, deleteDoc, orderBy, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-import { getDatabase, ref, onValue, onChildAdded, limitToLast, query as rQuery } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, doc, getDoc, deleteDoc, orderBy, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getDatabase, ref, onValue, onChildAdded, limitToLast, query as rQuery } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
-    authDomain: "evverprrime.firebaseapp.com",
-    databaseURL: "https://evverprrime-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "evverprrime",
-    storageBucket: "evverprrime.firebasestorage.app",
-    messagingSenderId: "738169841658",
-    appId: "1:738169841658:web:5de9ecdda0f0f68f4ae643"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
+            authDomain: "evverprrime.firebaseapp.com",
+            databaseURL: "https://evverprrime-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "evverprrime",
+            storageBucket: "evverprrime.firebasestorage.app",
+            messagingSenderId: "738169841658",
+            appId: "1:738169841658:web:5de9ecdda0f0f68f4ae643"
+        };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
 
-let allUsers = [];
-let currentEditId = null; 
+        let allUsers = [];
+        let currentEditId = null; 
 
-window.showSection = (id, btn) => {
-    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
-};
+        window.showSection = (id, btn) => {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            const targetSec = document.getElementById(id);
+            if(targetSec) targetSec.classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        };
 
-window.delDoc = async (coll, id) => {
-    if(confirm(`ნამდვილად გსურთ წაშლა?`)) {
-        try { await deleteDoc(doc(db, coll, id)); } catch (e) { alert(e.message); }
-    }
-};
+        window.delDoc = async (coll, id) => {
+            if(confirm(`ნამდვილად გსურთ წაშლა?`)) {
+                try { await deleteDoc(doc(db, coll, id)); } catch (e) { alert(e.message); }
+            }
+        };
 
-window.uploadProduct = async () => {
-    const name = document.getElementById('p-name').value;
-    const price = document.getElementById('p-price').value;
-    const oldPrice = document.getElementById('p-oldprice')?.value;
-    const imagesRaw = document.getElementById('p-image').value;
-    const desc = document.getElementById('p-desc').value;
-    const category = document.getElementById('p-category').value;
-    
-    if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
+        window.uploadProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const oldPrice = document.getElementById('p-oldprice')?.value;
+            const imagesRaw = document.getElementById('p-image').value;
+            const desc = document.getElementById('p-desc').value;
+            const category = document.getElementById('p-category').value;
 
-    const imagesArray = imagesRaw.split(',')
-        .map(link => link.trim())
-        .filter(link => link !== "" && link.startsWith('http'));
+            if(!name || !price || !category) return alert("შეავსეთ აუცილებელი ველები!");
 
-    const productData = { 
-        name, 
-        price: Number(price), 
-        oldPrice: oldPrice ? Number(oldPrice) : null,
-        images: imagesArray, 
-        image: imagesArray[0] || '', 
-        desc, 
-        category, 
-        inStock: true,
-        updatedAt: Date.now() 
-    };
+            const imagesArray = imagesRaw.split(',')
+                .map(link => link.trim())
+                .filter(link => link !== "" && link.startsWith('http'));
 
-    try {
-        if(currentEditId) {
-            await setDoc(doc(db, "products", currentEditId), productData);
-            alert("პროდუქტი წარმატებით განახლდა!");
+            const productData = { 
+                name, 
+                price: Number(price), 
+                oldPrice: oldPrice ? Number(oldPrice) : null,
+                images: imagesArray, 
+                image: imagesArray[0] || '', 
+                desc, 
+                category, 
+                inStock: true,
+                updatedAt: Date.now() 
+            };
+
+            try {
+                if(currentEditId) {
+                    await setDoc(doc(db, "products", currentEditId), productData);
+                    alert("პროდუქტი წარმატებით განახლდა!");
+                    currentEditId = null;
+                } else {
+                    productData.createdAt = Date.now();
+                    await addDoc(collection(collection(db, "products").path), productData);
+                    alert("პროდუქტი წარმატებით დაემატა!");
+                }
+                resetProductForm();
+            } catch (e) { alert("შეცდომა: " + e.message); }
+        };
+
+        function resetProductForm() {
+            ['p-name', 'p-price', 'p-oldprice', 'p-image', 'p-desc'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
             currentEditId = null;
-        } else {
-            productData.createdAt = Date.now();
-            await addDoc(collection(db, "products"), productData);
-            alert("პროდუქტი წარმატებით დაემატა!");
         }
-        resetProductForm();
-    } catch (e) { alert("შეცდომა: " + e.message); }
-};
 
-function resetProductForm() {
-    ['p-name', 'p-price', 'p-oldprice', 'p-image', 'p-desc'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.value = '';
-    });
-    currentEditId = null;
-}
+        window.startEdit = (id, dataString) => {
+            try {
+                const data = JSON.parse(decodeURIComponent(dataString));
+                currentEditId = id;
+                document.getElementById('p-name').value = data.name || '';
+                document.getElementById('p-price').value = data.price || '';
+                document.getElementById('p-oldprice').value = data.oldPrice || '';
+                document.getElementById('p-image').value = data.images ? data.images.join(', ') : data.image;
+                document.getElementById('p-desc').value = data.desc || '';
+                document.getElementById('p-category').value = data.category || '';
 
-window.startEdit = (id, data) => {
-    currentEditId = id;
-    document.getElementById('p-name').value = data.name || '';
-    document.getElementById('p-price').value = data.price || '';
-    document.getElementById('p-oldprice').value = data.oldPrice || '';
-    document.getElementById('p-image').value = data.images ? data.images.join(', ') : data.image;
-    document.getElementById('p-desc').value = data.desc || '';
-    document.getElementById('p-category').value = data.category || '';
-    
-    window.showSection('upload-sec');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+                window.showSection('upload-sec');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch(e) {
+                console.error("Error patching compilation string: ", e);
+            }
+        };
 
-window.toggleStock = async (id, currentStatus) => {
-    try {
-        await setDoc(doc(db, "products", id), { inStock: !currentStatus }, { merge: true });
-    } catch (e) { console.error(e); }
-};
+        window.toggleStock = async (id, currentStatus) => {
+            try {
+                await setDoc(doc(db, "products", id), { inStock: !currentStatus }, { merge: true });
+            } catch (e) { console.error(e); }
+        };
 
-window.addCategory = async () => {
-    const name = document.getElementById('new-cat-name').value.trim();
-    if(!name) return;
-    try { 
-        await addDoc(collection(db, "categories"), { name }); 
-        document.getElementById('new-cat-name').value = ''; 
-    } catch (e) { alert(e.message); }
-};
+        window.addCategory = async () => {
+            const name = document.getElementById('new-cat-name').value.trim();
+            if(!name) return;
+            try { 
+                await addDoc(collection(db, "categories"), { name }); 
+                document.getElementById('new-cat-name').value = ''; 
+            } catch (e) { alert(e.message); }
+        };
 
-// --- გასწორებული ფუნქცია: პარტნიორის დამატება ---
-window.addPartner = async () => {
-    const id = document.getElementById('partner-id').value.trim().toLowerCase();
-    const name = document.getElementById('partner-name').value.trim();
-    
-    if(!id || !name) return alert("შეავსეთ ორივე ველი!");
-    if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
+        window.addPartner = async () => {
+            const id = document.getElementById('partner-id').value.trim().toLowerCase();
+            const name = document.getElementById('partner-name').value.trim();
 
-    try {
-        const partnerRef = doc(db, "partners", id);
-        const checkExist = await getDoc(partnerRef);
-        
-        if (checkExist.exists()) return alert("ეს ID უკვე დაკავებულია!");
+            if(!id || !name) return alert("შეავსეთ ორივე ველი!");
+            if(id.includes(" ") || id.includes("?")) return alert("ID არ უნდა შეიცავდეს სფეისებს ან სიმბოლოებს!");
 
-        await setDoc(partnerRef, {
-            id: id,
-            name: name,
-            createdAt: Date.now()
-        });
-        
-        document.getElementById('partner-id').value = '';
-        document.getElementById('partner-name').value = '';
-        alert("პარტნიორი წარმატებით დაემატა!");
-    } catch(e) { alert(e.message); }
-};
+            try {
+                const partnerRef = doc(db, "partners", id);
+                const checkExist = await getDoc(partnerRef);
 
-function loadAdminData() {
-    onSnapshot(collection(db, "categories"), snap => {
-        const select = document.getElementById('p-category');
-        const list = document.getElementById('categories-list');
-        if(!select || !list) return;
-        select.innerHTML = ''; list.innerHTML = '';
-        snap.forEach(d => {
-            const cat = d.data().name;
-            select.innerHTML += `<option value="${cat}">${cat}</option>`;
-            list.innerHTML += `<div class="flex justify-between items-center p-2 bg-white/5 border border-white/5"><span class="text-xs uppercase">${cat}</span><button onclick="window.delDoc('categories', '${d.id}')" class="text-red-600 material-icons text-sm">delete</button></div>`;
-        });
-    });
+                if (checkExist.exists()) return alert("ეს ID უკვე დაკავებულია!");
 
-    // შეკვეთების სია სვეტით: რეფერალი
-    onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
-        const list = document.getElementById('orders-list');
-        if(!list) return;
-        list.innerHTML = '';
-        snap.forEach(d => {
-            const o = d.data();
-            const referrer = o.referrer || "Organic";
-            const refColor = referrer === "Organic" ? "text-gray-500" : "text-green-500 font-black";
+                await setDoc(partnerRef, {
+                    id: id,
+                    name: name,
+                    createdAt: Date.now()
+                });
 
-            list.innerHTML += `
-                <div class="p-4 bg-white/5 border-l-4 border-red-600 mb-2 flex justify-between items-center group">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full items-center">
-                        <div class="md:col-span-2">
-                            <p class="text-white font-bold uppercase text-sm">${o.product}</p>
-                            <p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p>
-                            <p class="text-[8px] text-red-500 uppercase">${o.time || ''}</p>
-                        </div>
-                        <div>
-                            <span class="text-[9px] text-gray-400 block uppercase">წყარო</span>
-                            <span class="text-xs uppercase tracking-wider ${refColor}">${referrer}</span>
-                        </div>
-                        <div class="text-right pr-4">
-                            <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
-                        </div>
-                    </div>
-                </div>`;
-        });
-    });
+                document.getElementById('partner-id').value = '';
+                document.getElementById('partner-name').value = '';
+                alert("პარტნიორი წარმატებით დაემატა!");
+            } catch(e) { alert(e.message); }
+        };
 
-    onSnapshot(collection(db, "products"), snap => {
-        const list = document.getElementById('inventory-list');
-        if(!list) return;
-        list.innerHTML = '';
-        snap.forEach(d => {
-            const p = d.data();
-            const inStock = p.inStock !== false;
-            const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-            
-            list.innerHTML += `
-                <div class="admin-card p-4 flex flex-col gap-3 border border-white/5">
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-3">
-                            <img src="${mainImg}" class="w-12 h-12 object-cover border border-white/10 bg-black">
-                            <div>
-                                <p class="text-xs font-bold text-white uppercase">${p.name}</p>
-                                <p class="text-[10px] text-red-500">${p.price}₾</p>
+        function loadAdminData() {
+            onSnapshot(collection(db, "categories"), snap => {
+                const select = document.getElementById('p-category');
+                const list = document.getElementById('categories-list');
+                if(!select || !list) return;
+                select.innerHTML = ''; list.innerHTML = '';
+                snap.forEach(d => {
+                    const cat = d.data().name;
+                    select.innerHTML += `<option value="${cat}">${cat}</option>`;
+                    list.innerHTML += `<div class="flex justify-between items-center p-2 bg-white/5 border border-white/5"><span class="text-xs uppercase">${cat}</span><button onclick="window.delDoc('categories', '${d.id}')" class="text-red-600 material-icons text-sm">delete</button></div>`;
+                });
+            });
+
+            onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
+                const list = document.getElementById('orders-list');
+                if(!list) return;
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const o = d.data();
+                    const referrer = o.referrer || "Organic";
+                    const refColor = referrer === "Organic" ? "text-gray-500" : "text-green-500 font-black";
+
+                    list.innerHTML += `
+                        <div class="p-4 bg-white/5 border-l-4 border-red-600 mb-2 flex justify-between items-center group">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full items-center">
+                                <div class="md:col-span-2">
+                                    <p class="text-white font-bold uppercase text-sm">${o.product}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase">${o.address || 'N/A'} | ${o.phone || 'N/A'}</p>
+                                    <p class="text-[8px] text-red-500 uppercase">${o.time || ''}</p>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] text-gray-400 block uppercase">წყარო</span>
+                                    <span class="text-xs uppercase tracking-wider ${refColor}">${referrer}</span>
+                                </div>
+                                <div class="text-right pr-4">
+                                    <button onclick="window.delDoc('orders', '${d.id}')" class="text-gray-700 hover:text-red-600 transition"><span class="material-icons">delete</span></button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick='window.startEdit("${d.id}", ${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-blue-500 material-icons text-sm hover:scale-125 transition">edit</button>
-                            <button onclick="window.delDoc('products', '${d.id}')" class="text-red-600 material-icons text-sm opacity-50 hover:opacity-100">delete</button>
-                        </div>
-                    </div>
-                    <button onclick="window.toggleStock('${d.id}', ${inStock})" 
-                        class="w-full py-2 text-[9px] font-bold uppercase border transition-all ${inStock ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-gray-600 text-gray-600 hover:bg-gray-600/10'}">
-                        ${inStock ? '● მარაგშია' : '○ ამოწურულია'}
-                    </button>
-                </div>`;
-        });
-    });
+                        </div>`;
+                });
+            });
 
-    // პარტნიორების რეალთაიმ სია
-    onSnapshot(collection(db, "partners"), snap => {
-        const list = document.getElementById('partners-list');
-        if(!list) return;
-        list.innerHTML = '';
-        snap.forEach(d => {
-            const p = d.data();
-            list.innerHTML += `
-                <div class="admin-card p-4 border border-white/5 flex justify-between items-center">
-                    <div>
-                        <p class="text-green-500 font-bold text-sm tracking-wider">?ref=${p.id}</p>
-                        <p class="text-[11px] text-white uppercase">${p.name}</p>
-                    </div>
-                    <button onclick="window.delDoc('partners', '${d.id}')" class="text-gray-700 hover:text-red-600 transition">
-                        <span class="material-icons text-sm">delete</span>
-                    </button>
-                </div>`;
-        });
-    });
+            onSnapshot(collection(db, "products"), snap => {
+                const list = document.getElementById('inventory-list');
+                if(!list) return;
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    const inStock = p.inStock !== false;
+                    const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
+                    const safeObjectString = encodeURIComponent(JSON.stringify(p));
 
-    onChildAdded(rQuery(ref(rtdb, 'orders_live'), limitToLast(1)), (snap) => {
-        const order = snap.val();
-        if (order && (Date.now() - order.timestamp < 10000)) triggerAlarm(order);
-    });
+                    list.innerHTML += `
+                        <div class="admin-card p-4 flex flex-col gap-3 border border-white/5">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <img src="${mainImg}" class="w-12 h-12 object-cover border border-white/10 bg-black">
+                                    <div>
+                                        <p class="text-xs font-bold text-white uppercase">${p.name}</p>
+                                        <p class="text-[10px] text-red-500">${p.price}₾</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="window.startEdit('${d.id}', '${safeObjectString}')" class="text-blue-500 material-icons text-sm hover:scale-125 transition">edit</button>
+                                    <button onclick="window.delDoc('products', '${d.id}')" class="text-red-600 material-icons text-sm opacity-50 hover:opacity-100">delete</button>
+                                </div>
+                            </div>
+                            <button onclick="window.toggleStock('${d.id}', ${inStock})" 
+                                class="w-full py-2 text-[9px] font-bold uppercase border transition-all ${inStock ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-gray-600 text-gray-600 hover:bg-gray-600/10'}">
+                                ${inStock ? '● მარაგშია' : '○ ამოწურულია'}
+                            </button>
+                        </div>`;
+                });
+            });
 
-    onValue(ref(rtdb, 'online_users'), s => {
-        const userStats = document.getElementById('user-stats');
-        if(userStats) userStats.innerHTML = `● LIVE USERS: ${s.exists() ? Object.keys(s.val()).length : 0}`;
-    });
+            onSnapshot(collection(db, "partners"), snap => {
+                const list = document.getElementById('partners-list');
+                if(!list) return;
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    list.innerHTML += `
+                        <div class="admin-card p-4 border border-white/5 flex justify-between items-center">
+                            <div>
+                                <p class="text-green-500 font-bold text-sm tracking-wider">?ref=${p.id}</p>
+                                <p class="text-[11px] text-white uppercase">${p.name}</p>
+                            </div>
+                            <button onclick="window.delDoc('partners', '${d.id}')" class="text-gray-700 hover:text-red-600 transition">
+                                <span class="material-icons text-sm">delete</span>
+                            </button>
+                        </div>`;
+                });
+            });
 
-    onSnapshot(collection(db, "users"), snap => {
-        allUsers = [];
-        snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-        renderUsers(allUsers);
-    });
-}
+            let initialQueryBypass = true;
+            onChildAdded(rQuery(ref(rtdb, 'orders_live'), limitToLast(1)), (snap) => {
+                if (initialQueryBypass) {
+                    initialQueryBypass = false;
+                    return;
+                }
+                const order = snap.val();
+                if (order && (Date.now() - order.timestamp < 15000)) {
+                    triggerAlarm(order);
+                }
+            });
 
-function renderUsers(usersArray) {
-    const list = document.getElementById('users-list');
-    if(!list) return;
-    list.innerHTML = '';
-    usersArray.forEach(u => {
-        if(u.role === 'admin') return;
-        list.innerHTML += `
-            <div class="admin-card p-4 border-t-2 border-blue-600 relative">
-                <h4 class="text-white font-bold text-xs truncate mb-1">${u.email}</h4>
-                <p class="text-[10px] text-gray-500 font-mono italic">${u.phone || 'N/A'}</p>
-                <p class="text-[9px] text-blue-400 mt-1 uppercase">${u.address || ''}</p>
-                <button onclick="window.delDoc('users', '${u.id}')" class="absolute top-4 right-4 text-gray-800 hover:text-red-600 transition"><span class="material-icons text-sm">person_remove</span></button>
-            </div>`;
-    });
-}
+            onValue(ref(rtdb, 'online_users'), s => {
+                const userStats = document.getElementById('user-stats');
+                if(userStats) userStats.innerHTML = `● LIVE USERS: ${s.exists() ? Object.keys(s.val()).length : 0}`;
+            });
 
-function triggerAlarm(data) {
-    const overlay = document.getElementById('alarm-overlay');
-    const details = document.getElementById('alarm-details');
-    if(!overlay || !details) return;
-    details.innerHTML = `
-        <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product}</p>
-        <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address}</p>
-        <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone}</p>
-        <p class="text-red-500 font-black text-xs mt-1 uppercase">🔗 რეფერალი: ${data.referrer || 'Organic'}</p>
-    `;
-    overlay.classList.add('active');
-    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3');
-    audio.play().catch(e => console.log("Audio play blocked"));
-}
-
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const u = await getDoc(doc(db, "users", user.uid));
-        if (u.exists() && u.data().role === 'admin') {
-            loadAdminData();
-        } else {
-            window.location.href = "index.html"; 
+            onSnapshot(collection(db, "users"), snap => {
+                allUsers = [];
+                snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                renderUsers(allUsers);
+            });
         }
-    } else {
-        window.location.href = "index.html";
-    }
-});
 
-document.getElementById('user-search')?.addEventListener('input', (e) => {
-    const val = e.target.value.toLowerCase();
-    renderUsers(allUsers.filter(u => 
-        (u.email?.toLowerCase().includes(val)) || 
-        (u.phone?.includes(val))
-    ));
-});
+        function renderUsers(usersArray) {
+            const list = document.getElementById('users-list');
+            if(!list) return;
+            list.innerHTML = '';
+            usersArray.forEach(u => {
+                if(u.role === 'admin') return;
+                list.innerHTML += `
+                    <div class="admin-card p-4 border-t-2 border-blue-600 relative">
+                        <h4 class="text-white font-bold text-xs truncate mb-1">${u.email || ''}</h4>
+                        <p class="text-[10px] text-gray-500 font-mono italic">${u.phone || 'N/A'}</p>
+                        <p class="text-[9px] text-blue-400 mt-1 uppercase">${u.address || ''}</p>
+                        <button onclick="window.delDoc('users', '${u.id}')" class="absolute top-4 right-4 text-gray-800 hover:text-red-600 transition"><span class="material-icons text-sm">person_remove</span></button>
+                    </div>`;
+            });
+        }
+
+        function triggerAlarm(data) {
+            const overlay = document.getElementById('alarm-overlay');
+            const details = document.getElementById('alarm-details');
+            if(!overlay || !details) return;
+            details.innerHTML = `
+                <p class="text-white text-xl uppercase font-bold mb-2">📦 ${data.product || ''}</p>
+                <p class="text-green-500 font-mono text-sm">📍 მისამართი: ${data.address || 'N/A'}</p>
+                <p class="text-white/50 text-xs mt-2 italic">კონტაქტი: ${data.phone || 'N/A'}</p>
+                <p class="text-red-500 font-black text-xs mt-1 uppercase">🔗 რეფერალი: ${data.referrer || 'Organic'}</p>
+            `;
+            overlay.classList.add('active');
+            const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3');
+            audio.play().catch(e => console.log("Audio play blocked by ecosystem configurations"));
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const u = await getDoc(doc(db, "users", user.uid));
+                if (u.exists() && u.data().role === 'admin') {
+                    loadAdminData();
+                } else {
+                    window.location.href = "index.html"; 
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        document.getElementById('user-search')?.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            renderUsers(allUsers.filter(u => 
+                (u.email?.toLowerCase().includes(val)) || 
+                (u.phone?.includes(val))
+            ));
+        });
     </script>
 </body>
 </html>
