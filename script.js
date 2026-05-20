@@ -22,8 +22,11 @@ let allProducts = [];
 let currentPage = 1;
 let currentCategory = 'all';
 
-// --- 1. ინტერაქტიული ელემენტები და რეფერალების ტრეკინგი ---
+// --- 1. ინტერაქტიული ელემენტები და რეფერალის შემოწმება ---
 document.addEventListener("DOMContentLoaded", () => {
+    // უსაფრთხო შემოწმება საიტის ჩატვირთვისას
+    verifyReferralStatus();
+
     setTimeout(() => {
         const pre = document.getElementById('custom-preloader');
         if(pre) {
@@ -31,45 +34,38 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => pre.style.display = 'none', 800);
         }
     }, 2000);
-
-    // რეფერალური პარამეტრის დამუშავება
-    checkReferral();
 });
 
-async function checkReferral() {
+// რეფერალის შემოწმების უსაფრთხო ფუნქცია
+async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
-    const refParam = urlParams.get('ref');
-    
-    if (refParam) {
-        try {
-            const partnerId = refParam.trim();
-            const partnerDoc = await getDoc(doc(db, "partners", partnerId));
-            if (partnerDoc.exists()) {
-                const refData = {
-                    id: partnerId,
-                    expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30-დღიანი Cookie ეფექტი
-                };
-                localStorage.setItem('everprime_ref', JSON.stringify(refData));
-            }
-        } catch (e) {
-            console.error("Referral validation error:", e);
-        }
-    }
-}
+    const referralId = urlParams.get('ref');
 
-function getActiveReferrer() {
-    const refDataRaw = localStorage.getItem('everprime_ref');
-    if (!refDataRaw) return "Organic";
-    
+    if (!referralId) return;
+
     try {
-        const refData = JSON.parse(refDataRaw);
-        if (Date.now() > refData.expiry) {
-            localStorage.removeItem('everprime_ref');
-            return "Organic";
+        const refDocRef = doc(db, "partners", referralId);
+        const refSnapshot = await getDoc(refDocRef);
+
+        // თუ რეფერალი წაშლილია ადმინკიდან ან ფიზიკურად არ არსებობს ბაზაში
+        if (!refSnapshot.exists()) {
+            urlParams.delete('ref');
+            const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
+
+            // მომხმარებლისთვის შეტყობინების ჩვენება
+            window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
+
+            // გადამისამართება სუფთა (საწყის) ბმულზე
+            setTimeout(() => {
+                window.location.href = cleanURL;
+            }, 2500);
+        } else {
+            // თუ რეფერალი ვალიდურია, ვინახავთ localStorage-ში შეკვეთისთვის
+            localStorage.setItem('prime_referrer', referralId);
         }
-        return refData.id;
-    } catch (e) {
-        return "Organic";
+    } catch (error) {
+        // თუ უფლებების გამო მაინც მოხდა შეცდომა, საიტი რომ არ გაითიშოს, უბრალოდ ლოგავს კონსოლში
+        console.log("Referral track check bypassed or unauthorized: ", error.message);
     }
 }
 
@@ -251,44 +247,59 @@ window.showDetails = (id) => {
 
 window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
 
-// --- 6. შეკვეთის ლოგიკა, რეფერალი და ტელეგრამი ---
+// --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id, name) => {
     const user = auth.currentUser;
     if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
 
-    const uDoc = await getDoc(doc(db, "users", user.uid));
-    const data = uDoc.data();
-    if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+    try {
+        const uDoc = await getDoc(doc(db, "users", user.uid));
+        const data = uDoc.data();
+        if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
-    window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
-        const referrerId = getActiveReferrer();
+        window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
+            try {
+                const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
 
-        const orderInfo = { 
-            product: name, 
-            email: user.email, 
-            phone: data.phone, 
-            address: data.address, 
-            referrer: referrerId,
-            timestamp: Date.now(), 
-            time: new Date().toLocaleString('ka-GE') 
-        };
-        
-        await addDoc(collection(db, "orders"), orderInfo);
-        await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
+                // შეკვეთის ობიექტში დაემატა userId, რათა უსაფრთხოების წესებმა (Rules) გაატარონ მოთხოვნა
+                const orderInfo = { 
+                    product: name, 
+                    email: user.email, 
+                    userId: user.uid, 
+                    phone: data.phone, 
+                    address: data.address, 
+                    timestamp: Date.now(), 
+                    time: new Date().toLocaleString('ka-GE'),
+                    referrer: referrerId
+                };
 
-        const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 რეფერალი: ${referrerId}`;
+                // მონაცემების შენახვა ბაზაში
+                await addDoc(collection(db, "orders"), orderInfo);
+                await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-        const mainGroupId = '-1003731895302';
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`);
+                // ტელეგრამის შეტყობინების გაგზავნა
+                const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
+                const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-        const fitrockGroupId = '-1003886942000';
-        if (name.toLowerCase().includes('fitrock')) {
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`);
-        }
+                const mainGroupId = '-1003731895302';
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
+                    .catch(e => console.log("Telegram main group error:", e));
 
-        window.primeShow("შეკვეთა გაიგზავნა!");
-    });
+                const fitrockGroupId = '-1003886942000';
+                if (name.toLowerCase().includes('fitrock')) {
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
+                        .catch(e => console.log("Telegram fitrock group error:", e));
+                }
+
+                window.primeShow("შეკვეთა გაიგზავნა!");
+            } catch (innerError) {
+                console.error("Error writing order: ", innerError);
+                window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა: " + innerError.message);
+            }
+        });
+    } catch (authError) {
+        console.error("User profile load error: ", authError);
+    }
 };
 
 // --- 7. დამხმარე UI ფუნქციები ---
