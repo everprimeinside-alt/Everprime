@@ -39,7 +39,10 @@ async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const referralId = urlParams.get('ref');
 
-    if (!referralId) return;
+    if (!referralId) {
+        localStorage.removeItem('prime_referrer');
+        return;
+    }
 
     try {
         const refDocRef = doc(db, "partners", referralId);
@@ -48,6 +51,7 @@ async function verifyReferralStatus() {
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            localStorage.removeItem('prime_referrer');
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
             setTimeout(() => {
                 window.location.href = cleanURL;
