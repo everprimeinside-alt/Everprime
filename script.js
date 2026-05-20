@@ -24,7 +24,7 @@ let currentCategory = 'all';
 
 // --- 1. ინტერაქტიული ელემენტები და რეფერალის შემოწმება ---
 document.addEventListener("DOMContentLoaded", () => {
-    // რეფერალური ლინკის ვალიდურობის შემოწმება
+    // უსაფრთხო შემოწმება საიტის ჩატვირთვისას
     verifyReferralStatus();
 
     setTimeout(() => {
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2000);
 });
 
-// რეფერალის შემოწმების ფუნქცია
+// რეფერალის შემოწმების უსაფრთხო ფუნქცია
 async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const referralId = urlParams.get('ref');
@@ -47,21 +47,22 @@ async function verifyReferralStatus() {
         const refDocRef = doc(db, "referrals", referralId);
         const refSnapshot = await getDoc(refDocRef);
 
-        // თუ რეფერალი წაშლილია ან არ არსებობს ბაზაში
+        // თუ რეფერალი წაშლილია ადმინკიდან ან ფიზიკურად არ არსებობს ბაზაში
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
             
-            // მომხმარებლისთვის პოპაპის ჩვენება
+            // მომხმარებლისთვის შეტყობინების ჩვენება
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
             
-            // გადამისამართება სუფთა მისამართზე
+            // გადამისამართება სუფთა (საწყის) ბმულზე
             setTimeout(() => {
                 window.location.href = cleanURL;
             }, 2500);
         }
     } catch (error) {
-        console.error("Referral verification error: ", error);
+        // თუ უფლებების გამო მაინც მოხდა შეცდომა, საიტი რომ არ გაითიშოს, უბრალოდ ლოგავს კონსოლში
+        console.log("Referral track check bypassed or unauthorized: ", error.message);
     }
 }
 
