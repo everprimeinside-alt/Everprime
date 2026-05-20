@@ -7,17 +7,22 @@
     <title>EverPrime | საუკეთესო სპორტული დანამატები საქართველოში – პროტეინი, კრეატინი, ვიტამინები</title>
     <meta name="title" content="EverPrime | Elite Performance – სპორტული დანამატები საქართველოში">
     <meta name="description" content="EverPrime - სპორტული დანამატები საქართველოში. პროტეინი, კრეატინი, ამინომჟავები, ვიტამინები და ყველაფერი შენი ფიტნეს მიზნებისთვის. მიიღე მაქსიმალური ენერგია!">
+
     <meta name="keywords" content="სპორტული დანამატები, პროტეინი, კრეატინი, ამინომჟავა, ამინო, ვიტამინი, ფიტნესი, ფიტნეს, ვარჯიში, დანამატები თბილისში, გეინერი, სპორტული კვება, bcaa, ვარჯიში თბილისი, ონლაინ მაღაზია, ენერგეტიკი, ძალის მომატება, კუნთის შენება, კვება, sports supplements, protein, creatine, amino acids, amino, vitamins, fitness, workout, gym supplements Georgia, gainer, sports nutrition, pre-workout, muscle building, EverPrime Georgia">
+
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://everprime.ge/">
     <meta property="og:title" content="EverPrime | Elite Arsenal – პროტეინი, კრეატინი, ამინო">
     <meta property="og:description" content="აღმოაჩინე მაღალი ხარისხის სპორტული დანამატები. პროტეინი, კრეატინი, ამინომჟავები და ვიტამინები საუკეთესო ფასად.">
     <meta property="og:image" content="https://everprime.ge/logo.jpg">
+
     <link rel="canonical" href="https://everprime.ge/">
     <meta name="robots" content="index, follow">
     <meta property="og:site_name" content="EverPrime Georgia">
     <meta property="og:locale" content="ka_GE">
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <!-- Google tag (gtag.js) -->
@@ -26,6 +31,7 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+
       gtag('config', 'G-96D8Q9D95Z');
     </script>
     <script type="application/ld+json">
@@ -86,9 +92,10 @@
             <div id="nav-user-area"></div>
         </div>
     </nav>
-
+        
     <div id="main-slider-container" class="prime-slider-wrapper">
-        <button class="scroll-arrow arrow-left" onclick="window.scrollSlide(-200)">&#10094;</button>
+        <button class="scroll-arrow arrow-left" onclick="scrollSlide(-200)">&#10094;</button>
+
         <div id="slider-list" class="prime-scroll-area">
             <a href="#" class="prime-slider-link active">მთავარი</a>
             <a href="#shop" class="prime-slider-link">პროდუქტი</a>
@@ -98,7 +105,8 @@
             <a href="aboutus.html" class="prime-slider-link">ჩვენს შესახებ</a>
             <a href="mailto:everprime.support@gmail.com" class="prime-slider-link">კონტაქტი</a>
         </div>
-        <button class="scroll-arrow arrow-right" onclick="window.scrollSlide(200)">&#10095;</button>
+
+        <button class="scroll-arrow arrow-right" onclick="scrollSlide(200)">&#10095;</button>
     </div>
 
     <div id="profile-modal" class="fixed inset-0 z-[200] bg-black/98 flex items-center justify-center p-6 hidden">
@@ -131,7 +139,7 @@
                 <input id="r-phone" type="text" placeholder="ტელეფონის ნომერი" class="auth-input">
                 <input id="r-address" type="text" placeholder="მისამართი" class="auth-input">
                 <button onclick="window.handleRegister()" class="w-full bg-white text-black py-2 text-[25px] font-bold uppercase italic hover:bg-red-600 hover:text-white transition-all">რეგისტრაცია</button>
-                <p class="mt-6 text-[15px] uppercase text-gray-600 text-center tracking-widest font-bold">რეგისტრირებული ხარ? <button onclick="window.toggleAuth()" class="text-red-600 underline">შესვლა</button></p>
+                <p class="mt-6 text-[15px] uppercase text-gray-600 text-center tracking-widest font-bold">რეგისტრილებური ხარ? <button onclick="window.toggleAuth()" class="text-red-600 underline">შესვლა</button></p>
             </div>
         </div>
     </section>
@@ -140,7 +148,7 @@
         <section class="relative h-screen flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 z-0">
                 <div class="absolute inset-0 bg-gradient-to-t from-[#020202] via-transparent to-[#020202] z-10"></div>
-                <img src="https://i.postimg.cc/gkdSXXRs/hq720.jpg" alt="Hero Background" class="w-full h-full object-cover grayscale opacity-20 scale-110 hero-zoom">
+                <img src="https://i.postimg.cc/gkdSXXRs/hq720.jpg" class="w-full h-full object-cover grayscale opacity-20 scale-110 hero-zoom">
             </div>
             <div class="container mx-auto px-6 relative z-20">
                 <strong><br><br>
@@ -172,92 +180,8 @@
                     <div class="item">ამინო</div>
                 </div>
             </div>
-            <br><br><br>
+            <div class="floor-glow"></div>
         </section>
-
-        <style>
-            .neon-3d-section {
-                position: relative;
-                width: 100%;
-                height: auto; 
-                padding: 8vw 0; 
-                background: #020204;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                overflow: hidden;
-                perspective: 2000px;
-            }
-            .neon-3d-section .stage {
-                width: 100%;
-                height: 16vw; 
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .neon-3d-section .carousel {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                transform-style: preserve-3d;
-                animation: rotateCyber 22s infinite linear;
-                will-change: transform;
-            }
-            .neon-3d-section .item {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                width: 18vw;       
-                height: 4.5vw;     
-                min-width: 95px;   
-                min-height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2vw;  
-                font-weight: 900;
-                color: #fff;
-                text-transform: uppercase;
-                letter-spacing: 0.2vw;
-                background: linear-gradient(135deg, rgba(255, 0, 60, 0.03) 0%, rgba(255, 0, 60, 0.08) 100%);
-                border: 1px solid rgba(255, 0, 60, 0.25);
-                text-shadow: 0 0 0.8vw #ff003c;
-                box-shadow: 0 0 1.5vw rgba(255, 0, 60, 0.1), inset 0 0 1vw rgba(255, 0, 60, 0.15);
-                backface-visibility: hidden;
-                -webkit-box-reflect: below 0.4vw linear-gradient(transparent, rgba(255, 0, 60, 0.08));
-            }
-            .neon-3d-section .item::before,
-            .neon-3d-section .item::after {
-                content: '';
-                position: absolute;
-                width: 0.8vw;
-                height: 0.8vw;
-                border: 0.2vw solid #ff003c;
-                pointer-events: none;
-            }
-            .neon-3d-section .item::before {
-                top: -1px;
-                left: -1px;
-                border-right: none;
-                border-bottom: none;
-            }
-            .neon-3d-section .item::after {
-                bottom: -1px;
-                right: -1px;
-                border-left: none;
-                border-top: none;
-            }
-            .neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(42.5vw); }
-            .neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(42.5vw); }
-            .neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(42.5vw); }
-            .neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(42.5vw); }
-            .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(42.5vw); }
-            .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(42.5vw); }
-            @keyframes rotateCyber {
-                0% { transform: rotateX(-12deg) rotateY(0deg); }
-                100% { transform: rotateX(-12deg) rotateY(360deg); }
-            }
-        </style>
 
         <section id="shop" class="py-40 bg-black">
             <div class="container mx-auto px-6">
@@ -268,7 +192,8 @@
                         </h2>
                         <p class="text-gray-600 text-[10px] mt-4 uppercase tracking-[0.5em] font-bold">საუკეთესო ენერგია და შედეგი</p>
                     </div>
-                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    
+                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto reveal-up">
                         <input type="text" id="search-input" oninput="window.filterProducts()" placeholder="პროდუქტის ძიება..." class="bg-[#050505] border border-white/5 p-4 text-[15px] outline-none focus:border-red-600 w-full md:w-80 text-white transition-all">
                         <select id="sort-select" onchange="window.filterProducts()" class="bg-[#050505] border border-white/5 p-4 text-[15px] text-white cursor-pointer hover:border-red-600 uppercase">
                             <option value="default">სორტირება</option>
@@ -278,11 +203,12 @@
                     </div>
                 </div>
 
-                <div id="category-container" class="flex flex-wrap gap-3 mb-16">
+                <div id="category-container" class="flex flex-wrap gap-3 mb-16 reveal-up">
                     <button onclick="window.setCategory('all')" class="cat-btn active">ყველა</button>
                 </div>
 
                 <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
                 <div id="pagination-bottom" class="flex justify-center flex-wrap gap-2 mt-20"></div>
             </div>
         </section>
@@ -301,7 +227,7 @@
                     </div>
                 </div>
                 <div class="mt-16 border-t border-white/5 pt-10">
-                    <p class="text-[8px] text-gray-800 tracking-[1em] uppercase">შექმნილი დომინირებისთვის. EVERPRIME PRIME ARSENAL 2026.</p>
+                    <p class="text-[8px] text-gray-800 tracking-[1em] uppercase">შექმნილი დომინირებისთვი. EVERPRIME PRIME ARSENAL 2026.</p>
                 </div>
             </div>
         </footer>
@@ -317,7 +243,6 @@
             </div>
         </div>
     </div>
-
     <script type="module" src="script.js"></script>
 </body>
 </html>
