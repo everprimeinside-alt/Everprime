@@ -44,21 +44,24 @@ async function verifyReferralStatus() {
     if (!referralId) return;
 
     try {
-        const refDocRef = doc(db, "referrals", referralId);
+        const refDocRef = doc(db, "partners", referralId);
         const refSnapshot = await getDoc(refDocRef);
 
         // თუ რეფერალი წაშლილია ადმინკიდან ან ფიზიკურად არ არსებობს ბაზაში
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
-            
+
             // მომხმარებლისთვის შეტყობინების ჩვენება
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
-            
+
             // გადამისამართება სუფთა (საწყის) ბმულზე
             setTimeout(() => {
                 window.location.href = cleanURL;
             }, 2500);
+        } else {
+            // თუ რეფერალი ვალიდურია, ვინახავთ localStorage-ში შეკვეთისთვის
+            localStorage.setItem('prime_referrer', referralId);
         }
     } catch (error) {
         // თუ უფლებების გამო მაინც მოხდა შეცდომა, საიტი რომ არ გაითიშოს, უბრალოდ ლოგავს კონსოლში
@@ -254,15 +257,18 @@ window.order = async (id, name) => {
     if(!data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
 
     window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
+        const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
+
         const orderInfo = { 
             product: name, email: user.email, phone: data.phone, address: data.address, 
-            timestamp: Date.now(), time: new Date().toLocaleString('ka-GE') 
+            timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'),
+            referrer: referrerId
         };
         await addDoc(collection(db, "orders"), orderInfo);
         await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
         const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}`;
+        const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
         const mainGroupId = '-1003731895302';
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`);
