@@ -261,7 +261,6 @@ window.order = async (id, name) => {
             try {
                 const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
 
-                // შეკვეთის ობიექტში დაემატა userId, რათა უსაფრთხოების წესებმა (Rules) გაატარონ მოთხოვნა
                 const orderInfo = { 
                     product: name, 
                     email: user.email, 
@@ -281,11 +280,11 @@ window.order = async (id, name) => {
                 const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-                const mainGroupId = '-1003731895302';
+                const mainGroupId = '-10023731895302';
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
                     .catch(e => console.log("Telegram main group error:", e));
 
-                const fitrockGroupId = '-1003886942000';
+                const fitrockGroupId = '-10023886942000';
                 if (name.toLowerCase().includes('fitrock')) {
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
                         .catch(e => console.log("Telegram fitrock group error:", e));
