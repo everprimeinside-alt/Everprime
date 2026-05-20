@@ -5,8 +5,8 @@
     font-style: normal;
     font-display: swap;
 }
-*{
-    font-family: 'BPG Phone Sans Bold';
+* {
+    font-family: 'BPG Phone Sans Bold', sans-serif;
     font-weight: bold;
 }
 body { 
@@ -40,7 +40,7 @@ body {
 .buy-btn {
     width: 100%; padding: 10px 0; background: #fff; color: #000;
     font-weight: bold; text-transform: uppercase;
-    font-style: italic; font-size: 14px; transition: 0.3s; border: none; cursor: pointer;
+    font-style: italic; transition: 0.3s; border: none; cursor: pointer;
     font-size: 17px;
 }
 .buy-btn:hover { background: #FF0000; color: #fff; }
@@ -104,14 +104,15 @@ input, select, textarea {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #FF0000; }
-/* ინპუტები და სელექტები ფოკუსის დროს */
+
 input:focus, 
 select:focus, 
 textarea:focus {
-    outline: none !important; /* ეს თიშავს სტანდარტულ ყვითელ/ლურჯ ჩარჩოს */
-    border-color: #FF0000 !important; /* ამის ნაცვლად გამოიყენებს შენს წითელ ბორდერს */
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3) !important; /* სურვილისამებრ: წითელი ნათება */
+    outline: none !important;
+    border-color: #FF0000 !important;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3) !important;
 }
+
 .cat-btn {
     padding: 10px 24px;
     background: transparent;
@@ -137,7 +138,9 @@ textarea:focus {
     color: #fff;
     border-color: #FF0000;
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
-}#custom-preloader {
+}
+
+#custom-preloader {
     position: fixed;
     top: 0;
     left: 0;
@@ -148,7 +151,6 @@ textarea:focus {
     justify-content: center;
     align-items: center;
     z-index: 999999;
-    /* transition განსაზღვრავს რამდენ ხანში და რა სტილით გაქრეს */
     transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
     opacity: 1;
     visibility: visible;
@@ -159,14 +161,14 @@ textarea:focus {
     height: auto;
 }
 
-/* კლასი, რომელსაც JS-ით დავამატებთ */
 .loader-hidden {
     opacity: 0 !important;
     visibility: hidden !important;
 }
+
 .prime-slider-wrapper {
     position: fixed;
-    top: 80px; /* შენი ჰედერის სიმაღლე */
+    top: 80px; 
     left: 0;
     width: 100%;
     background: rgba(2, 2, 2, 0.85);
@@ -176,20 +178,17 @@ textarea:focus {
     padding: 12px 0;
     display: flex;
     align-items: center;
-    /* ანიმაციისთვის */
     transition: transform 0.4s ease-in-out, opacity 0.3s ease-in-out;
     transform: translateY(0);
     opacity: 1;
 }
 
-/* კლასი გაქრობისთვის */
 .slider-hidden {
-    transform: translateY(-100%); /* აიტანს ზემოთ ჰედერის უკან */
+    transform: translateY(-100%);
     opacity: 0;
-    pointer-events: none; /* გაქრობისას ღილაკებზე დაჭერა რომ გამოირიცხოს */
+    pointer-events: none;
 }
 
-/* მინიმალისტური ისრები და ლინკები (როგორც ადრე) */
 .scroll-arrow {
     position: absolute;
     background: none;
@@ -230,6 +229,7 @@ textarea:focus {
     flex-shrink: 0;
     transition: all 0.3s;
 }
+.prime-slider-link:hover { border-color: #FF0000; color: #fff; }
 .prime-slider-link.active { border-color: #FF0000; color: #fff; background: rgba(255, 0, 0, 0.1); }
 #modal-slider-img {
     transition: opacity 0.3s ease-in-out;
