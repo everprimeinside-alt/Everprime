@@ -380,17 +380,3 @@ window.addEventListener('scroll', () => {
 });
 
 window.scrollSlide = (distance) => { document.getElementById('slider-list').scrollBy({ left: distance, behavior: 'smooth' }); };
-document.addEventListener('DOMContentLoaded', () => {
-            const track = document.getElementById('marquee-track');
-            if (track) {
-                const originalContent = track.querySelector('.marquee-content');
-                if (originalContent) {
-                    // ვქმნით ზუსტ კლონს უწყვეტი ანიმაციის უზრუნველსაყოფად
-                    const clone = originalContent.cloneNode(true);
-                    // ვუწერთ aria-hidden-ს რათა ეკრანის მკითხველებმა (screen readers) არ წაიკითხონ დუბლირებული ტექსტი
-                    clone.setAttribute('aria-hidden', 'true');
-                    // ვამატებთ ტრეკის ბოლოში
-                    track.appendChild(clone);
-                }
-            }
-        });
