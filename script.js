@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-import { getDatabase, ref, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
@@ -16,26 +16,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const rtdb = getDatabase(app);
 
-// Telegram Config
 const BOT_TOKEN = "8553271170:AAEXbqdFaM0wkIyfoa0CcwL4JjVsrNBxiEo";
 const CHAT_ID = "-1004329787412";
 
 let allProducts = [];
-let currentPage = 1;
-let currentCategory = 'all';
 
 document.addEventListener("DOMContentLoaded", () => {
     verifyReferralStatus();
     loadProducts();
     loadCategories();
-    
-    // Preloader Logic
-    setTimeout(() => {
-        const pre = document.getElementById('custom-preloader');
-        if(pre) { pre.classList.add('loader-hidden'); setTimeout(() => pre.style.display = 'none', 800); }
-    }, 2000);
 });
 
 async function verifyReferralStatus() {
@@ -63,6 +53,25 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
 
+async function sendTelegramWithRetry(info, retries = 3) {
+    const msg = `🛒 *ახალი შეკვეთა*\n\n📦 *პროდუქტი:* ${info.productName}\n👤 *მომხმარებელი:* ${info.userEmail}\n📞 *ტელ:* ${info.phone}\n📍 *მისამართი:* ${info.address}\n🌐 *რეფერალი:* ${info.referrer}`;
+    
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "Markdown" })
+            });
+            if (res.ok) return true;
+        } catch (e) {
+            console.warn(`ცდა #${i + 1} ვერ განხორციელდა`);
+        }
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    return false;
+}
+
 window.order = async (id) => {
     const user = auth.currentUser;
     if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
@@ -73,7 +82,7 @@ window.order = async (id) => {
         try {
             const uDoc = await getDoc(doc(db, "users", user.uid));
             const data = uDoc.data();
-            if(!data || !data.phone || !data.address) { 
+            if(!data?.phone || !data?.address) { 
                 window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); 
                 window.toggleProfile(); return; 
             }
@@ -83,19 +92,12 @@ window.order = async (id) => {
                 userEmail: user.email, 
                 phone: data.phone, 
                 address: data.address, 
-                time: new Date().toLocaleString('ka-GE'),
+                time: serverTimestamp(),
                 referrer: localStorage.getItem('prime_referrer') || 'Organic'
             };
 
             await addDoc(collection(db, "orders"), orderInfo);
-            
-            // Telegram Bot Integration
-            const msg = `🛒 *ახალი შეკვეთა*\n\n📦 *პროდუქტი:* ${orderInfo.productName}\n👤 *მომხმარებელი:* ${orderInfo.userEmail}\n📞 *ტელ:* ${orderInfo.phone}\n📍 *მისამართი:* ${orderInfo.address}\n🌐 *რეფერალი:* ${orderInfo.referrer}`;
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "Markdown" })
-            });
+            await sendTelegramWithRetry(orderInfo);
 
             window.primeShow("შეკვეთა წარმატებით განთავსდა!");
         } catch (error) {
@@ -125,7 +127,6 @@ function loadCategories() {
     });
 }
 
-// Authentication Handlers
 window.handleLogin = async () => {
     try { await signInWithEmailAndPassword(auth, document.getElementById('l-email').value, document.getElementById('l-pass').value); location.reload(); } 
     catch(e) { window.primeShow("შეცდომა: " + e.message); }
