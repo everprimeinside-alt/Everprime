@@ -19,7 +19,7 @@ const db = getFirestore(app);
 const rtdb = getDatabase(app);
 
 // Telegram Config
-const BOT_TOKEN = "8553271170:AAHvLqL2Ddbthfx2JJ2WYYfD5W5R2ouf5Ng";
+const BOT_TOKEN = "8553271170:AAEXbqdFaM0wkIyfoa0CcwL4JjVsrNBxiEo";
 const CHAT_ID = "-1004329787412";
 
 let allProducts = [];
