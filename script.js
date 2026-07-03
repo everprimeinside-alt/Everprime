@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -208,50 +208,43 @@ window.closeDetails = () => { document.getElementById('details-modal-overlay').s
 window.order = async (id) => {
     const user = auth.currentUser;
     if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
+    
     const p = allProducts.find(item => item.id === id);
     if(!p) return;
-    const name = p.name || '';
-    try {
-        const uDoc = await getDoc(doc(db, "users", user.uid));
-        const data = uDoc.data();
-        if(!data || !data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
-        
-        window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
-            try {
-                const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
-                const orderInfo = { 
-                    product: name, email: user.email, userId: user.uid, phone: data.phone, 
-                    address: data.address, timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'), referrer: referrerId
-                };
-                
-                await addDoc(collection(db, "orders"), orderInfo);
-                await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                const botToken = '8553271170:AAHvLqL2Ddbthfx2JJ2WYYfD5W5R2ouf5Ng';
-const mainGroupId = '-1004829787412';
-const tgText = '🚀 ახალი შეკვეთა! ' + name; // დროებით გამარტივებული ტექსტი
-
-// სცადეთ ეს კონკრეტული სტრიქონი:
-const url = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + mainGroupId + "&text=" + encodeURIComponent(tgText);
-
-
-                const response = await fetch(url);
-                const result = await response.json();
-
-                if (result.ok) { 
-                    window.primeShow("შეკვეთა გაიგზავნა!"); 
-                } else { 
-                    console.error("Telegram API Error:", result);
-                    window.primeShow("შეცდომა ბოტისგან: " + result.description); 
-                }
-            } catch (innerError) { 
-                console.error("Order process error:", innerError);
-                window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა."); 
+    window.primeShow(`ადასტურებთ შეკვეთას: ${p.name}?`, true, async () => {
+        try {
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            const data = uDoc.data();
+            if(!data || !data.phone || !data.address) { 
+                window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); 
+                window.toggleProfile(); 
+                return; 
             }
-        });
-    } catch (authError) { 
-        console.error("User profile load error: ", authError); 
-    }
+
+            const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
+            const orderInfo = { 
+                productName: p.name,
+                productId: p.id,
+                userEmail: user.email, 
+                userId: user.uid, 
+                phone: data.phone, 
+                address: data.address, 
+                timestamp: serverTimestamp(),
+                time: new Date().toLocaleString('ka-GE'), 
+                referrer: referrerId,
+                status: "ახალი"
+            };
+
+            await addDoc(collection(db, "orders"), orderInfo);
+            await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
+
+            window.primeShow("შეკვეთა წარმატებით განთავსდა! გიპასუხებთ მალე.");
+        } catch (error) {
+            console.error("შეკვეთის შეცდომა:", error);
+            window.primeShow("დაფიქსირდა შეცდომა. გთხოვთ სცადოთ მოგვიანებით.");
+        }
+    });
 };
 
 function renderPagination(total) {
