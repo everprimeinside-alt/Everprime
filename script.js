@@ -228,11 +228,12 @@ window.order = async (id) => {
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
                 const botToken = '8553271170:AAHvLqL2Ddbthfx2JJ2WYYfD5W5R2ouf5Ng';
-                const mainGroupId = '-1004829787412';
-                const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
+const mainGroupId = '-1004829787412';
+const tgText = '🚀 ახალი შეკვეთა! ' + name; // დროებით გამარტივებული ტექსტი
 
-                // დამატებულია encodeURIComponent პარამეტრებისთვის
-                const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${encodeURIComponent(mainGroupId)}&text=${encodeURIComponent(tgText)}`;
+// სცადეთ ეს კონკრეტული სტრიქონი:
+const url = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + mainGroupId + "&text=" + encodeURIComponent(tgText);
+
 
                 const response = await fetch(url);
                 const result = await response.json();
