@@ -274,7 +274,7 @@ window.order = async (id) => {
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                const botToken = '8553271170:AAHN8FVIdYH7aaExhxfmeqm3q0QPU-nCJMk';
+                const botToken = '8553271170:AAE6fKzVSZTINTZAUSnqcu9TyKSpkmisu8M';
                 const mainGroupId = '-1004329787412';
                 const fitrockGroupId = '-1002388694200'; 
 
