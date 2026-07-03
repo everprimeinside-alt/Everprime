@@ -39,7 +39,7 @@ async function verifyReferralStatus() {
 
 // ტელეგრამის ფუნქცია შეცდომების დამუშავებით
 async function sendTelegramWithRetry(info, retries = 3) {
-    const msg = `🛒 *ახალი შეკვეთა*\n\n📦 *პროდუქტი:* ${info.productName}\n👤 *მომხმარებელი:* ${info.userEmail}\n📞 *ტელ:* ${info.phone}\n📍 *მისამართი:* ${info.address}\n🌐 *რეფერალი:* ${info.referrer}`;
+    const msg = `🛒 *ახალი შეკვეთა*\n\n📦 *პროდუქტი:* ${info.productName}\n👤 *მომხმარებელი:* ${info.userEmail}\n📞 *ტელეფონი:* ${info.phone}\n📍 *მისამართი:* ${info.address}\n👥 *რეფერელი:* ${info.referrer}`;
     
     for (let i = 0; i < retries; i++) {
         try {
@@ -109,7 +109,11 @@ function loadCategories() {
         container.innerHTML = `<button onclick="window.setCategory('all')" class="cat-btn">ყველა</button>`;
         snap.forEach(doc => {
             const cat = doc.data().name;
-            container.innerHTML += `<button onclick="window.setCategory('${cat}')" class="cat-btn">${cat}</button>`;
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn';
+            btn.textContent = cat;
+            btn.onclick = () => window.setCategory(cat);
+            container.appendChild(btn);
         });
     });
 }
@@ -124,7 +128,10 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     modal.classList.replace('hidden', 'flex');
     if (confirmMode) {
         confirmBtn.classList.remove('hidden');
-        confirmBtn.onclick = () => { if (onConfirm) onConfirm(); modal.classList.replace('flex', 'hidden'); };
+        confirmBtn.onclick = async () => { 
+            modal.classList.replace('flex', 'hidden'); 
+            if (onConfirm) await onConfirm(); 
+        };
     } else { confirmBtn.classList.add('hidden'); }
     closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
