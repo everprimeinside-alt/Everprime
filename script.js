@@ -215,6 +215,7 @@ window.order = async (id) => {
         const uDoc = await getDoc(doc(db, "users", user.uid));
         const data = uDoc.data();
         if(!data || !data.phone || !data.address) { window.primeShow("მიუთითეთ ნომერი და მისამართი პროფილში!"); window.toggleProfile(); return; }
+        
         window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
             try {
                 const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
@@ -222,35 +223,34 @@ window.order = async (id) => {
                     product: name, email: user.email, userId: user.uid, phone: data.phone, 
                     address: data.address, timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'), referrer: referrerId
                 };
+                
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
                 const botToken = '8553271170:AAHvLqL2Ddbthfx2JJ2WYYfD5W5R2ouf5Ng';
-const mainGroupId = '-1004829787412';
-const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
+                const mainGroupId = '-1004829787412';
+                const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`;
+                // დამატებულია encodeURIComponent პარამეტრებისთვის
+                const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${encodeURIComponent(mainGroupId)}&text=${encodeURIComponent(tgText)}`;
 
-console.log("Sending request to:", url); // დააკვირდით კონსოლს
+                const response = await fetch(url);
+                const result = await response.json();
 
-fetch(url)
-    .then(res => res.json())
-    .then(data => {
-        console.log("Bot response:", data); // დააკვირდით კონსოლს
-        if (data.ok) { 
-            window.primeShow("შეკვეთა გაიგზავნა!"); 
-        } else { 
-            window.primeShow("შეცდომა ბოტისგან: " + data.description); 
-        }
-    })
-    .catch(e => {
-        console.error("Fetch error:", e);
-        window.primeShow("ქსელური შეცდომა: " + e.message);
-    });
-
-            } catch (innerError) { window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა."); }
+                if (result.ok) { 
+                    window.primeShow("შეკვეთა გაიგზავნა!"); 
+                } else { 
+                    console.error("Telegram API Error:", result);
+                    window.primeShow("შეცდომა ბოტისგან: " + result.description); 
+                }
+            } catch (innerError) { 
+                console.error("Order process error:", innerError);
+                window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა."); 
+            }
         });
-    } catch (authError) { console.error("User profile load error: ", authError); }
+    } catch (authError) { 
+        console.error("User profile load error: ", authError); 
+    }
 };
 
 function renderPagination(total) {
