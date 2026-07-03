@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, addDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
@@ -38,21 +37,7 @@ async function verifyReferralStatus() {
     } catch (e) { console.error("Ref error:", e); }
 }
 
-window.primeShow = (text, confirmMode = false, onConfirm = null) => {
-    const modal = document.getElementById('prime-popup');
-    const txt = document.getElementById('popup-text');
-    const confirmBtn = document.getElementById('popup-confirm');
-    const closeBtn = document.getElementById('popup-close');
-    if(!modal) return;
-    txt.innerText = text;
-    modal.classList.replace('hidden', 'flex');
-    if (confirmMode) {
-        confirmBtn.classList.remove('hidden');
-        confirmBtn.onclick = () => { if (onConfirm) onConfirm(); modal.classList.replace('flex', 'hidden'); };
-    } else { confirmBtn.classList.add('hidden'); }
-    closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
-};
-
+// ტელეგრამის ფუნქცია შეცდომების დამუშავებით
 async function sendTelegramWithRetry(info, retries = 3) {
     const msg = `🛒 *ახალი შეკვეთა*\n\n📦 *პროდუქტი:* ${info.productName}\n👤 *მომხმარებელი:* ${info.userEmail}\n📞 *ტელ:* ${info.phone}\n📍 *მისამართი:* ${info.address}\n🌐 *რეფერალი:* ${info.referrer}`;
     
@@ -64,9 +49,7 @@ async function sendTelegramWithRetry(info, retries = 3) {
                 body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "Markdown" })
             });
             if (res.ok) return true;
-        } catch (e) {
-            console.warn(`ცდა #${i + 1} ვერ განხორციელდა`);
-        }
+        } catch (e) { console.warn(`Telegram error: ${e.message}`); }
         await new Promise(r => setTimeout(r, 1000));
     }
     return false;
@@ -98,11 +81,10 @@ window.order = async (id) => {
 
             await addDoc(collection(db, "orders"), orderInfo);
             await sendTelegramWithRetry(orderInfo);
-
             window.primeShow("შეკვეთა წარმატებით განთავსდა!");
         } catch (error) {
-            console.error("Error:", error);
-            window.primeShow("დაფიქსირდა შეცდომა.");
+            console.error("Order error:", error);
+            window.primeShow("დაფიქსირდა შეცდომა შეკვეთისას.");
         }
     });
 };
@@ -111,7 +93,12 @@ function loadProducts() {
     onSnapshot(collection(db, "products"), (snap) => {
         allProducts = [];
         snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-        if(window.filterProducts) window.filterProducts();
+        // დავამატე შემოწმება ფილტრაციისთვის
+        if (typeof window.filterProducts === 'function') {
+            window.filterProducts();
+        } else {
+            console.warn("filterProducts ფუნქცია ჯერ არ არის განსაზღვრული.");
+        }
     });
 }
 
@@ -126,6 +113,21 @@ function loadCategories() {
         });
     });
 }
+
+window.primeShow = (text, confirmMode = false, onConfirm = null) => {
+    const modal = document.getElementById('prime-popup');
+    const txt = document.getElementById('popup-text');
+    const confirmBtn = document.getElementById('popup-confirm');
+    const closeBtn = document.getElementById('popup-close');
+    if(!modal) return;
+    txt.innerText = text;
+    modal.classList.replace('hidden', 'flex');
+    if (confirmMode) {
+        confirmBtn.classList.remove('hidden');
+        confirmBtn.onclick = () => { if (onConfirm) onConfirm(); modal.classList.replace('flex', 'hidden'); };
+    } else { confirmBtn.classList.add('hidden'); }
+    closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
+};
 
 window.handleLogin = async () => {
     try { await signInWithEmailAndPassword(auth, document.getElementById('l-email').value, document.getElementById('l-pass').value); location.reload(); } 
