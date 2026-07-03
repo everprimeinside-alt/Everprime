@@ -227,7 +227,7 @@ window.order = async (id) => {
 
                 // ბოტის ტოკენი და ID-ები
                 const botToken = '8033635887:AAF7UkBJ-KmbKIAwybfYKT_ViY4fpeXMXn4';
-                const mainGroupId = '-1004329787412';
+                const mainGroupId = '-1004329787412' ;
                 const fitrockGroupId = '-1002388694200'; 
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
