@@ -225,23 +225,18 @@ window.order = async (id) => {
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                // ბოტის ტოკენი და ID-ები
-                const botToken = '8033635887:AAF7UkBJ-KmbKIAwybfYKT_ViY4fpeXMXn4';
-                const mainGroupId = '-1004329787412' ;
-                const fitrockGroupId = '-1002388694200'; 
+                const botToken = '8033635887:AAHMIvHPVGzuejAxpe2Sta8v0iVq6-O-hhc';
+                const mainGroupId = '-1004329787412';
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-                // გაგზავნა no-cors-ის გარეშე
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
                 .then(res => res.json())
-                .catch(e => console.error("Telegram main group error:", e));
+                .then(data => {
+                    if (data.ok) { window.primeShow("შეკვეთა გაიგზავნა!"); }
+                    else { window.primeShow("შეცდომა ბოტისგან: " + data.description); }
+                })
+                .catch(e => window.primeShow("ქსელური შეცდომა: " + e.message));
 
-                if (name.toLowerCase().includes('fitrock')) {
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
-                    .then(res => res.json())
-                    .catch(e => console.error("Telegram fitrock group error:", e));
-                }
-                window.primeShow("შეკვეთა გაიგზავნა!");
             } catch (innerError) { window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა."); }
         });
     } catch (authError) { console.error("User profile load error: ", authError); }
