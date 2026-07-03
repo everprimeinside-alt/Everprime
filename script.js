@@ -225,8 +225,8 @@ window.order = async (id) => {
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                const botToken = '8033635887:AAEjRB2hZkQxlbAEv4BFarzQ0asLKBLzT9c';
-                const mainGroupId = '-1004329787412' ;
+                const botToken = '8553271170:AAHvLqL2Ddbthfx2JJ2WYYfD5W5R2ouf5Ng';
+                const mainGroupId = '-1004829787412';
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
