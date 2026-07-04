@@ -275,8 +275,8 @@ window.order = async (id) => {
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
 
-                const botToken = '8023573505:AAFRsExFNpP2d2YpQB4nGDlB-ZEFo3u7wxE';
-                const mainGroupId = '-1003731895302';
+                const botToken = '8553271170:AAH0KHkLVYREkcuOoafOgeBFc5-m3hCc8xs';
+                const mainGroupId = '-1004329787412';
                 const fitrockGroupId = '-1002388694200'; 
 
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
