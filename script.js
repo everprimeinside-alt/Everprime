@@ -381,3 +381,5 @@ window.addEventListener('scroll', () => {
 });
 
 window.scrollSlide = (distance) => { document.getElementById('slider-list').scrollBy({ left: distance, behavior: 'smooth' }); };
+// Force rebuild fix
+
