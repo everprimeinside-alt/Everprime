@@ -281,18 +281,25 @@ window.order = async (id) => {
 
                 const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
 
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`, {
-                    mode: 'no-cors'
-                })
-                .then(() => console.log("Telegram main group message sent successfully"))
-                .catch(e => console.log("Telegram main group error:", e));
+                // სტანდარტული და სწორი გაგზავნა ძირითად ჯგუფში
+fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
+.then(response => {
+    if (!response.ok) {
+        throw new Error(`Telegram API Error: ${response.status}`);
+    }
+    console.log("Telegram main group message sent successfully");
+})
+.catch(e => console.error("Telegram main group error:", e));
 
-                if (name.toLowerCase().includes('fitrock')) {
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`, {
-                        mode: 'no-cors'
-                    })
-                    .catch(e => console.log("Telegram fitrock group error:", e));
-                }
+// გაგზავნა Fitrock ჯგუფში, თუ პროდუქტი შეიცავს ამ სახელს
+if (name.toLowerCase().includes('fitrock')) {
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
+    .then(response => {
+        if (!response.ok) throw new Error(`Telegram Fitrock Error: ${response.status}`);
+    })
+    .catch(e => console.error("Telegram fitrock group error:", e));
+}
+
 
                 window.primeShow("შეკვეთა გაიგზავნა!");
             } catch (innerError) {
