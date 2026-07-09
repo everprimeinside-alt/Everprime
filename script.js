@@ -3,7 +3,6 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-
 const firebaseConfig = {
     apiKey: "AIzaSyD8enMds5C_R-uD2atgLRf7TPQ4N6u843E",
     authDomain: "evverprrime.firebaseapp.com",
@@ -26,7 +25,6 @@ let currentCategory = 'all';
 // --- 1. ინტერაქტიული ელემენტები და რეფერალის შემოწმება ---
 document.addEventListener("DOMContentLoaded", () => {
     verifyReferralStatus();
-
     setTimeout(() => {
         const pre = document.getElementById('custom-preloader');
         if(pre) {
@@ -39,30 +37,23 @@ document.addEventListener("DOMContentLoaded", () => {
 async function verifyReferralStatus() {
     const urlParams = new URLSearchParams(window.location.search);
     const referralId = urlParams.get('ref');
-
     if (!referralId) {
         localStorage.removeItem('prime_referrer');
         return;
     }
-
     try {
         const refDocRef = doc(db, "partners", referralId);
         const refSnapshot = await getDoc(refDocRef);
-
         if (!refSnapshot.exists()) {
             urlParams.delete('ref');
             const cleanURL = window.location.origin + (urlParams.toString() ? '?' + urlParams.toString() : '');
             localStorage.removeItem('prime_referrer');
             window.primeShow("მოცემული რეფერალური ლინკი გაუქმებულია ან არ არსებობს!", false);
-            setTimeout(() => {
-                window.location.href = cleanURL;
-            }, 2500);
+            setTimeout(() => { window.location.href = cleanURL; }, 2500);
         } else {
             localStorage.setItem('prime_referrer', referralId);
         }
-    } catch (error) {
-        console.log("Referral track check bypassed or unauthorized: ", error.message);
-    }
+    } catch (error) { console.log("Referral track check bypassed: ", error.message); }
 }
 
 // --- 2. შეტყობინებების ფანჯარა (Popup) ---
@@ -81,19 +72,16 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
 
-// --- 3. ავტორიზაცია და სტატუსი ---
+// --- 3. ავტორიზაცია ---
 onAuthStateChanged(auth, async (user) => {
     const authSec = document.getElementById('auth-section');
     const navUser = document.getElementById('nav-user-area');
-
     loadProducts();
     loadCategories();
-
     if (user) {
         const userStatusRef = ref(rtdb, '/online_users/' + user.uid);
         set(userStatusRef, { email: user.email, last_active: Date.now() });
         onDisconnect(userStatusRef).remove();
-
         if(authSec) authSec.classList.add('hidden');
         navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
@@ -102,7 +90,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// --- 4. პროდუქტების და კატეგორიების მართვა ---
+// --- 4. პროდუქტების მართვა ---
 function loadCategories() {
     onSnapshot(collection(db, "categories"), (snap) => {
         const container = document.getElementById('category-container');
@@ -115,11 +103,7 @@ function loadCategories() {
     });
 }
 
-window.setCategory = (cat) => {
-    currentCategory = cat;
-    currentPage = 1;
-    window.filterProducts();
-};
+window.setCategory = (cat) => { currentCategory = cat; currentPage = 1; window.filterProducts(); };
 
 function loadProducts() {
     onSnapshot(collection(db, "products"), (snap) => {
@@ -134,7 +118,6 @@ window.filterProducts = () => {
     const sortSelect = document.getElementById('sort-select');
     const grid = document.getElementById('product-grid');
     if(!grid) return;
-
     const search = searchInput ? searchInput.value.toLowerCase() : "";
     const sort = sortSelect ? sortSelect.value : "default";
 
@@ -155,7 +138,6 @@ window.filterProducts = () => {
     paginated.forEach(p => {
         const inStock = p.inStock !== false;
         const mainImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
-
         grid.innerHTML += `
             <div class="product-card group flex flex-col h-full ${!inStock ? 'opacity-80' : ''}">
                 <div class="flex-grow">
@@ -172,7 +154,6 @@ window.filterProducts = () => {
                         </div>
                         <div class="text-right">
                             <p class="text-red-600 font-bold text-lg">${p.price}₾</p>
-                            ${p.oldPrice ? `<p class="text-gray-500 text-[9px] uppercase tracking-tighter">იყო: ${p.oldPrice}₾</p>` : ''}
                         </div>
                     </div>
                 </div>
@@ -187,67 +168,10 @@ window.filterProducts = () => {
     renderPagination(totalPages);
 };
 
-// --- 5. სლაიდერი და დეტალები ---
-window.showDetails = (id) => {
-    const p = allProducts.find(item => item.id === id);
-    if(!p) return;
-
-    const images = (p.images && p.images.length > 0) ? p.images : [p.image || 'logo.jpg'];
-    let currentIdx = 0;
-    const inStock = p.inStock !== false;
-
-    const modal = document.getElementById('details-modal-overlay');
-    const content = document.getElementById('details-content');
-
-    content.innerHTML = `
-        <div class="flex flex-col gap-6">
-            <div class="relative w-full aspect-square bg-black border border-white/5 flex items-center justify-center overflow-hidden">
-                <img id="modal-slider-img" src="${images[0]}" class="max-h-full max-w-full object-contain transition-opacity duration-300">
-                ${images.length > 1 ? `
-                    <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">◀</button>
-                    <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">▶</button>
-                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono text-white/50" id="img-counter">1 / ${images.length}</div>
-                ` : ''}
-            </div>
-            <div class="text-left">
-                <h2 class="text-2xl font-black italic uppercase text-red-600 mb-2">${p.name || ''}</h2>
-                <div class="flex items-baseline gap-3 mb-4">
-                    <span class="text-white font-bold text-3xl">${p.price}₾</span>
-                    ${p.oldPrice ? `<span class="text-gray-500 text-sm italic underline decoration-red-600/30">იყო: ${p.oldPrice}₾</span>` : ''}
-                </div>
-                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
-                <div class="flex flex-col gap-2">
-                    <button ${inStock ? `onclick="window.order('${p.id}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
-                    <button onclick="window.closeDetails()" class="details-btn">დახურვა</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    if(images.length > 1) {
-        const imgEl = document.getElementById('modal-slider-img');
-        const counterEl = document.getElementById('img-counter');
-        const update = () => {
-            imgEl.style.opacity = '0';
-            setTimeout(() => {
-                imgEl.src = images[currentIdx];
-                imgEl.style.opacity = '1';
-                counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
-            }, 200);
-        };
-        document.getElementById('prev-img').onclick = () => { currentIdx = (currentIdx - 1 + images.length) % images.length; update(); };
-        document.getElementById('next-img').onclick = () => { currentIdx = (currentIdx + 1) % images.length; update(); };
-    }
-    modal.style.display = 'flex';
-};
-
-window.closeDetails = () => { document.getElementById('details-modal-overlay').style.display = 'none'; };
-
-// --- 6. შეკვეთის ლოგიკა და ტელეგრამი ---
+// --- 5. შეკვეთის ლოგიკა და ტელეგრამი ---
 window.order = async (id) => {
     const user = auth.currentUser;
     if(!user) { window.primeShow("შესვლა აუცილებელია!"); window.scrollToAuth(); return; }
-
     const p = allProducts.find(item => item.id === id);
     if(!p) return;
     const name = p.name || '';
@@ -260,15 +184,9 @@ window.order = async (id) => {
         window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
             try {
                 const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
-
                 const orderInfo = { 
-                    product: name, 
-                    email: user.email, 
-                    userId: user.uid, 
-                    phone: data.phone, 
-                    address: data.address, 
-                    timestamp: Date.now(), 
-                    time: new Date().toLocaleString('ka-GE'),
+                    product: name, email: user.email, userId: user.uid, phone: data.phone, 
+                    address: data.address, timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'),
                     referrer: referrerId
                 };
 
@@ -278,41 +196,36 @@ window.order = async (id) => {
                 const botToken = '8553271170:AAH0KHkLVYREkcuOoafOgeBFc5-m3hCc8xs';
                 const mainGroupId = '-1004329787412';
                 const fitrockGroupId = '-1002388694200'; 
+                
+                // ოპტიმიზებული მისამართი თბილისის კონტექსტით
+                const fullAddress = `${data.address}, თბილისი`;
+                const encodedAddress = encodeURIComponent(fullAddress);
+                const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
-                const tgText = `🚀 ახალი შეკვეთა!\n📦 პროდუქტი: ${name}\n📞 ტელეფონი: ${data.phone}\n📍 მისამართი: ${data.address}\n🔗 წყარო: ${referrerId}`;
+                const tgText = `🚀 *ახალი შეკვეთა!*
+📦 *პროდუქტი:* ${name}
+📞 *ტელეფონი:* ${data.phone}
+📍 *მისამართი:* ${data.address}
+🗺 [გახსნა რუკაზე](${mapsLink})
+🔗 *წყარო:* ${referrerId}`;
 
-                // სტანდარტული და სწორი გაგზავნა ძირითად ჯგუფში
-fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${mainGroupId}&text=${encodeURIComponent(tgText)}`)
-.then(response => {
-    if (!response.ok) {
-        throw new Error(`Telegram API Error: ${response.status}`);
-    }
-    console.log("Telegram main group message sent successfully");
-})
-.catch(e => console.error("Telegram main group error:", e));
+                const sendToTelegram = (chatId) => {
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=Markdown&text=${encodeURIComponent(tgText)}`)
+                    .catch(e => console.error("Telegram error:", e));
+                };
 
-// გაგზავნა Fitrock ჯგუფში, თუ პროდუქტი შეიცავს ამ სახელს
-if (name.toLowerCase().includes('fitrock')) {
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${fitrockGroupId}&text=${encodeURIComponent(tgText)}`)
-    .then(response => {
-        if (!response.ok) throw new Error(`Telegram Fitrock Error: ${response.status}`);
-    })
-    .catch(e => console.error("Telegram fitrock group error:", e));
-}
-
+                sendToTelegram(mainGroupId);
+                if (name.toLowerCase().includes('fitrock')) sendToTelegram(fitrockGroupId);
 
                 window.primeShow("შეკვეთა გაიგზავნა!");
             } catch (innerError) {
-                console.error("Error writing order: ", innerError);
-                window.primeShow("შეკვეთის გაფორმებისას დაფიქსირდა შეცდომა: " + innerError.message);
+                window.primeShow("შეცდომა: " + innerError.message);
             }
         });
-    } catch (authError) {
-        console.error("User profile load error: ", authError);
-    }
+    } catch (authError) { console.error(authError); }
 };
 
-// --- 7. დამხმარე UI ფუნქციები ---
+// --- დარჩენილი ფუნქციები ---
 function renderPagination(total) {
     const container = document.getElementById('pagination-bottom');
     if (!container) return;
@@ -325,8 +238,6 @@ function renderPagination(total) {
 }
 
 window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.getElementById('shop').scrollIntoView({behavior: 'smooth'}); };
-
-// --- 8. ავტორიზაციის და პროფილის ფუნქციები ---
 async function loadUserProfile(uid) {
     const d = await getDoc(doc(db, "users", uid));
     if(d.exists()) {
@@ -335,7 +246,6 @@ async function loadUserProfile(uid) {
         if(document.getElementById('u-address-upd')) document.getElementById('u-address-upd').value = data.address || '';
     }
 }
-
 window.updateProfile = async () => {
     const user = auth.currentUser;
     if(user) {
@@ -347,13 +257,11 @@ window.updateProfile = async () => {
         window.toggleProfile();
     }
 };
-
 window.handleLogin = async () => {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
     try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { window.primeShow("შეცდომა: " + e.message); }
 };
-
 window.handleRegister = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
@@ -364,29 +272,10 @@ window.handleRegister = async () => {
         await setDoc(doc(db, "users", res.user.uid), { email, phone, address: addr, role: "user" });
     } catch(e) { window.primeShow("შეცდომა: " + e.message); }
 };
-
 window.handleLogout = () => signOut(auth).then(() => location.reload());
 window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
 window.toggleAuth = () => { 
     document.getElementById('login-form').classList.toggle('hidden'); 
     document.getElementById('register-form').classList.toggle('hidden'); 
 };
-window.scrollToAuth = () => { 
-    const sec = document.getElementById('auth-section');
-    if(sec) sec.classList.remove('hidden');
-};
-
-// --- 9. Navigation Slider Hide on Scroll ---
-let lastScroll = 0;
-window.addEventListener('scroll', () => {
-    const slider = document.getElementById('main-slider-container');
-    if(!slider) return;
-    let st = window.pageYOffset || document.documentElement.scrollTop;
-    if (st > lastScroll && st > 100) slider.classList.add('slider-hidden');
-    else slider.classList.remove('slider-hidden');
-    lastScroll = st <= 0 ? 0 : st;
-});
-
-window.scrollSlide = (distance) => { document.getElementById('slider-list').scrollBy({ left: distance, behavior: 'smooth' }); };
-// Force rebuild fix
-
+window.scrollToAuth = () => { const sec = document.getElementById('auth-section'); if(sec) sec.classList.remove('hidden'); };
