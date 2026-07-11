@@ -343,4 +343,4 @@ textarea:focus {
     .neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(180px); }
     .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(180px); }
     .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(180px); }
-}
+} 
