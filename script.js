@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -21,6 +21,7 @@ const rtdb = getDatabase(app);
 let allProducts = [];
 let currentPage = 1;
 let currentCategory = 'all';
+let currentUserOrders = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     verifyReferralStatus();
@@ -70,6 +71,27 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
 
+// Generate unique 4-digit code (0000-9999) with retry on collision
+async function generateUniqueOrderCode() {
+    let code = '';
+    let exists = true;
+    let attempts = 0;
+    const maxAttempts = 100;
+    while (exists && attempts < maxAttempts) {
+        code = String(Math.floor(1000 + Math.random() * 9000)); // 1000-9999
+        // Check Firestore for existing order with this code
+        const q = query(collection(db, "orders"), where("orderCode", "==", code));
+        const snap = await getDocs(q);
+        exists = !snap.empty;
+        attempts++;
+    }
+    if (attempts >= maxAttempts) {
+        // Fallback to timestamp-based unique code if collision persists
+        code = String(Date.now()).slice(-4);
+    }
+    return code;
+}
+
 onAuthStateChanged(auth, async (user) => {
     const authSec = document.getElementById('auth-section');
     const navUser = document.getElementById('nav-user-area');
@@ -82,6 +104,8 @@ onAuthStateChanged(auth, async (user) => {
         if(authSec) authSec.classList.add('hidden');
         navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
+        // Load order history for this user
+        loadUserOrders(user.uid);
     } else {
         if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
     }
@@ -228,10 +252,17 @@ window.order = async (id) => {
         window.primeShow(`ადასტურებთ შეკვეთას: ${name}?`, true, async () => {
             try {
                 const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
+                const orderCode = await generateUniqueOrderCode();
                 const orderInfo = { 
-                    product: name, email: user.email, userId: user.uid, phone: data.phone, 
-                    address: data.address, timestamp: Date.now(), time: new Date().toLocaleString('ka-GE'),
-                    referrer: referrerId
+                    product: name, 
+                    email: user.email, 
+                    userId: user.uid, 
+                    phone: data.phone, 
+                    address: data.address, 
+                    timestamp: Date.now(), 
+                    time: new Date().toLocaleString('ka-GE'),
+                    referrer: referrerId,
+                    orderCode: orderCode
                 };
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
@@ -240,18 +271,47 @@ window.order = async (id) => {
                 const fitrockGroupId = '-1002388694200'; 
                 const encodedAddress = encodeURIComponent(`${data.address}, თბილისი`);
                 const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                const tgText = `🚀 *ახალი შეკვეთა!*\n📦 *პროდუქტი:* ${name}\n📞 *ტელეფონი:* ${data.phone}\n📍 *მისამართი:* ${data.address}\n🗺 [გახსნა რუკაზე](${mapsLink})\n🔗 *წყარო:* ${referrerId}`;
+                const tgText = `🚀 *ახალი შეკვეთა!*\n📦 *პროდუქტი:* ${name}\n📞 *ტელეფონი:* ${data.phone}\n📍 *მისამართი:* ${data.address}\n🗺 [გახსნა რუკაზე](${mapsLink})\n🔗 *წყარო:* ${referrerId}\n🔑 *კოდი:* ${orderCode}`;
                 const sendToTelegram = (chatId) => {
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=Markdown&text=${encodeURIComponent(tgText)}`)
                     .catch(e => console.error("Telegram error:", e));
                 };
                 sendToTelegram(mainGroupId);
                 if (name.toLowerCase().includes('fitrock')) sendToTelegram(fitrockGroupId);
-                window.primeShow("შეკვეთა გაიგზავნა!");
+                window.primeShow(`შეკვეთა გაიგზავნა! კოდი: ${orderCode}`);
+                // Refresh order history after new order
+                if (user) loadUserOrders(user.uid);
             } catch (innerError) { window.primeShow("შეცდომა: " + innerError.message); }
         });
     } catch (authError) { console.error(authError); }
 };
+
+// Load and display user orders in profile
+async function loadUserOrders(uid) {
+    const orderList = document.getElementById('order-list');
+    if (!orderList) return;
+    try {
+        const q = query(collection(db, "orders"), where("userId", "==", uid));
+        const snap = await getDocs(q);
+        currentUserOrders = [];
+        snap.forEach(doc => currentUserOrders.push({ id: doc.id, ...doc.data() }));
+        currentUserOrders.sort((a, b) => b.timestamp - a.timestamp);
+        if (currentUserOrders.length === 0) {
+            orderList.innerHTML = '<p class="text-gray-600 text-[10px] uppercase">ჯერ არ გაქვს შეკვეთები</p>';
+        } else {
+            orderList.innerHTML = currentUserOrders.map(o => 
+                `<div class="flex justify-between border-b border-white/5 py-1">
+                    <span>${o.product}</span>
+                    <span class="text-red-500 font-mono">#${o.orderCode || 'N/A'}</span>
+                    <span class="text-gray-600 text-[9px]">${o.time || ''}</span>
+                </div>`
+            ).join('');
+        }
+    } catch (e) {
+        console.error("Error loading orders:", e);
+        orderList.innerHTML = '<p class="text-red-600 text-[10px]">ვერ ჩაიტვირთა ისტორია</p>';
+    }
+}
 
 function renderPagination(total) {
     const container = document.getElementById('pagination-bottom');
