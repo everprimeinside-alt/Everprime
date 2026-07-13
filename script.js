@@ -403,4 +403,5 @@ window.handleRegister = async () => {
 
 window.handleLogout = () => signOut(auth).then(() => location.reload());
 window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
-window.toggleAuth = () => { document.getEl
+window.toggleAuth = () => { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('register-form').classList.toggle('hidden'); };
+window.scrollToAuth = () => { const sec = document.getElementById('auth-section'); if(sec) sec.classList.remove('hidden'); };
