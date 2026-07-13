@@ -71,22 +71,20 @@ window.primeShow = (text, confirmMode = false, onConfirm = null) => {
     closeBtn.onclick = () => modal.classList.replace('flex', 'hidden');
 };
 
-// Generate unique 4-digit code (0000-9999) with retry on collision
+// Generate unique 4-digit code (1000-9999) with retry on collision
 async function generateUniqueOrderCode() {
     let code = '';
     let exists = true;
     let attempts = 0;
     const maxAttempts = 100;
     while (exists && attempts < maxAttempts) {
-        code = String(Math.floor(1000 + Math.random() * 9000)); // 1000-9999
-        // Check Firestore for existing order with this code
+        code = String(Math.floor(1000 + Math.random() * 9000));
         const q = query(collection(db, "orders"), where("orderCode", "==", code));
         const snap = await getDocs(q);
         exists = !snap.empty;
         attempts++;
     }
     if (attempts >= maxAttempts) {
-        // Fallback to timestamp-based unique code if collision persists
         code = String(Date.now()).slice(-4);
     }
     return code;
@@ -104,7 +102,6 @@ onAuthStateChanged(auth, async (user) => {
         if(authSec) authSec.classList.add('hidden');
         navUser.innerHTML = `<button onclick="window.toggleProfile()" class="nav-btn">${user.email.split('@')[0].toUpperCase()}</button>`;
         loadUserProfile(user.uid);
-        // Load order history for this user
         loadUserOrders(user.uid);
     } else {
         if(navUser) navUser.innerHTML = `<button onclick="window.scrollToAuth()" class="nav-btn">შესვლა</button>`;
@@ -197,14 +194,15 @@ window.showDetails = (id) => {
     const modal = document.getElementById('details-modal-overlay');
     const content = document.getElementById('details-content');
     if (!modal || !content) return;
+    
     content.innerHTML = `
         <div class="flex flex-col gap-6">
             <div class="relative w-full aspect-square bg-black border border-white/5 flex items-center justify-center overflow-hidden">
-                <img id="modal-slider-img" src="${images[0]}" class="max-h-full max-w-full object-contain transition-opacity duration-300">
+                <img id="modal-slider-img" src="${images[0]}" class="max-h-full max-w-full object-contain">
                 ${images.length > 1 ? `
-                    <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">◀</button>
-                    <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all">▶</button>
-                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono text-white/50" id="img-counter">1 / ${images.length}</div>
+                    <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all z-20">◀</button>
+                    <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 text-white p-3 hover:text-red-600 transition-all z-20">▶</button>
+                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-mono text-white/50 z-20" id="img-counter">1 / ${images.length}</div>
                 ` : ''}
             </div>
             <div class="text-left">
@@ -220,19 +218,26 @@ window.showDetails = (id) => {
             </div>
         </div>
     `;
+
     if(images.length > 1) {
         const imgEl = document.getElementById('modal-slider-img');
         const counterEl = document.getElementById('img-counter');
-        const update = () => {
-            imgEl.style.opacity = '0';
-            setTimeout(() => {
-                imgEl.src = images[currentIdx];
-                imgEl.style.opacity = '1';
-                counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
-            }, 200);
+        
+        const updateImage = () => {
+            imgEl.src = images[currentIdx];
+            counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
         };
-        document.getElementById('prev-img').onclick = () => { currentIdx = (currentIdx - 1 + images.length) % images.length; update(); };
-        document.getElementById('next-img').onclick = () => { currentIdx = (currentIdx + 1) % images.length; update(); };
+
+        document.getElementById('prev-img').onclick = (e) => { 
+            e.stopPropagation();
+            currentIdx = (currentIdx - 1 + images.length) % images.length; 
+            updateImage(); 
+        };
+        document.getElementById('next-img').onclick = (e) => { 
+            e.stopPropagation();
+            currentIdx = (currentIdx + 1) % images.length; 
+            updateImage(); 
+        };
     }
     modal.style.display = 'flex';
 };
@@ -279,14 +284,13 @@ window.order = async (id) => {
                 sendToTelegram(mainGroupId);
                 if (name.toLowerCase().includes('fitrock')) sendToTelegram(fitrockGroupId);
                 window.primeShow(`შეკვეთა გაიგზავნა! კოდი: ${orderCode}`);
-                // Refresh order history after new order
                 if (user) loadUserOrders(user.uid);
             } catch (innerError) { window.primeShow("შეცდომა: " + innerError.message); }
         });
     } catch (authError) { console.error(authError); }
 };
 
-// Load and display user orders in profile
+// Load and display user orders in profile dashboard
 async function loadUserOrders(uid) {
     const orderList = document.getElementById('order-list');
     if (!orderList) return;
@@ -296,20 +300,41 @@ async function loadUserOrders(uid) {
         currentUserOrders = [];
         snap.forEach(doc => currentUserOrders.push({ id: doc.id, ...doc.data() }));
         currentUserOrders.sort((a, b) => b.timestamp - a.timestamp);
+        
         if (currentUserOrders.length === 0) {
-            orderList.innerHTML = '<p class="text-gray-600 text-[10px] uppercase">ჯერ არ გაქვს შეკვეთები</p>';
+            orderList.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-48 border border-dashed border-white/5 bg-black/20">
+                    <span class="material-icons text-gray-700 text-3xl mb-2">shopping_bag</span>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider">ჯერჯერობით შეკვეთები არ ფიქსირდება</p>
+                </div>`;
         } else {
-            orderList.innerHTML = currentUserOrders.map(o => 
-                `<div class="flex justify-between border-b border-white/5 py-1">
-                    <span>${o.product}</span>
-                    <span class="text-red-500 font-mono">#${o.orderCode || 'N/A'}</span>
-                    <span class="text-gray-600 text-[9px]">${o.time || ''}</span>
-                </div>`
-            ).join('');
+            orderList.innerHTML = currentUserOrders.map(o => {
+                const cleanTime = o.time ? o.time.split(',')[0] : '';
+                return `
+                <div class="dashboard-order-item p-4 flex items-center justify-between gap-4" style="clip-path: polygon(3% 0, 100% 0, 100% 85%, 97% 100%, 0 100%, 0 15%);">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-red-600/10 border border-red-600/20 flex items-center justify-center">
+                            <span class="material-icons text-red-600 text-sm">layers</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[11px] font-bold uppercase text-white tracking-tight">${o.product}</h4>
+                            <p class="text-[9px] text-gray-500 mt-0.5">${cleanTime}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-mono bg-white/5 border border-white/10 text-gray-300 px-2.5 py-1 uppercase tracking-wider">
+                            ID: <span class="text-red-500">#${o.orderCode || 'N/A'}</span>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
         }
     } catch (e) {
         console.error("Error loading orders:", e);
-        orderList.innerHTML = '<p class="text-red-600 text-[10px]">ვერ ჩაიტვირთა ისტორია</p>';
+        orderList.innerHTML = `
+            <div class="flex items-center gap-2 text-red-600 text-[10px] uppercase p-4 border border-red-600/20 bg-red-600/5">
+                <span class="material-icons text-sm">error</span> ისტორიის ჩატვირთვა ვერ მოხერხდა
+            </div>`;
     }
 }
 
@@ -323,7 +348,9 @@ function renderPagination(total) {
         container.innerHTML += `<button onclick="window.goToPage(${i})" class="w-10 h-10 border font-bold transition-all ${active}">${i}</button>`;
     }
 }
+
 window.goToPage = (p) => { currentPage = p; window.filterProducts(); document.getElementById('shop').scrollIntoView({behavior: 'smooth'}); };
+
 async function loadUserProfile(uid) {
     const d = await getDoc(doc(db, "users", uid));
     if(d.exists()) {
@@ -332,6 +359,7 @@ async function loadUserProfile(uid) {
         if(document.getElementById('u-address-upd')) document.getElementById('u-address-upd').value = data.address || '';
     }
 }
+
 window.updateProfile = async () => {
     const user = auth.currentUser;
     if(user) {
@@ -343,11 +371,13 @@ window.updateProfile = async () => {
         window.toggleProfile();
     }
 };
+
 window.handleLogin = async () => {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
     try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { window.primeShow("შეცდომა: " + e.message); }
 };
+
 window.handleRegister = async () => {
     const email = document.getElementById('r-email').value;
     const pass = document.getElementById('r-pass').value;
@@ -358,7 +388,8 @@ window.handleRegister = async () => {
         await setDoc(doc(db, "users", res.user.uid), { email, phone, address: addr, role: "user" });
     } catch(e) { window.primeShow("შეცდომა: " + e.message); }
 };
+
 window.handleLogout = () => signOut(auth).then(() => location.reload());
 window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
 window.toggleAuth = () => { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('register-form').classList.toggle('hidden'); };
-window.scrollToAuth = () => { const sec = document.getElementById('auth-section'); if(sec) sec.classList.remove('hidden'); }; 
+window.scrollToAuth = () => { const sec = document.getElementById('auth-section'); if(sec) sec.classList.remove('hidden'); };
