@@ -23,6 +23,13 @@ let currentPage = 1;
 let currentCategory = 'all';
 let currentUserOrders = [];
 
+// Escapes Telegram legacy Markdown special characters so dynamic values
+// (names, addresses, referrer IDs, etc.) never break parse_mode=Markdown
+// and silently kill the whole notification.
+function escapeMd(text) {
+    return String(text ?? '').replace(/([_*`\[])/g, '\\$1');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     verifyReferralStatus();
     setTimeout(() => {
@@ -194,7 +201,7 @@ window.showDetails = (id) => {
     const modal = document.getElementById('details-modal-overlay');
     const content = document.getElementById('details-content');
     if (!modal || !content) return;
-    
+
     content.innerHTML = `
         <div class="flex flex-col gap-6">
             <div class="relative w-full aspect-square bg-black border border-white/5 flex items-center justify-center overflow-hidden">
@@ -222,21 +229,21 @@ window.showDetails = (id) => {
     if(images.length > 1) {
         const imgEl = document.getElementById('modal-slider-img');
         const counterEl = document.getElementById('img-counter');
-        
+
         const updateImage = () => {
             imgEl.src = images[currentIdx];
             counterEl.innerText = `${currentIdx + 1} / ${images.length}`;
         };
 
-        document.getElementById('prev-img').onclick = (e) => { 
+        document.getElementById('prev-img').onclick = (e) => {
             e.stopPropagation();
-            currentIdx = (currentIdx - 1 + images.length) % images.length; 
-            updateImage(); 
+            currentIdx = (currentIdx - 1 + images.length) % images.length;
+            updateImage();
         };
-        document.getElementById('next-img').onclick = (e) => { 
+        document.getElementById('next-img').onclick = (e) => {
             e.stopPropagation();
-            currentIdx = (currentIdx + 1) % images.length; 
-            updateImage(); 
+            currentIdx = (currentIdx + 1) % images.length;
+            updateImage();
         };
     }
     modal.style.display = 'flex';
@@ -258,13 +265,13 @@ window.order = async (id) => {
             try {
                 const referrerId = localStorage.getItem('prime_referrer') || 'Organic';
                 const orderCode = await generateUniqueOrderCode();
-                const orderInfo = { 
-                    product: name, 
-                    email: user.email, 
-                    userId: user.uid, 
-                    phone: data.phone, 
-                    address: data.address, 
-                    timestamp: Date.now(), 
+                const orderInfo = {
+                    product: name,
+                    email: user.email,
+                    userId: user.uid,
+                    phone: data.phone,
+                    address: data.address,
+                    timestamp: Date.now(),
                     time: new Date().toLocaleString('ka-GE'),
                     referrer: referrerId,
                     orderCode: orderCode
@@ -273,13 +280,18 @@ window.order = async (id) => {
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
                 const botToken = '8553271170:AAH0KHkLVYREkcuOoafOgeBFc5-m3hCc8xs';
                 const mainGroupId = '-1004329787412';
-                const fitrockGroupId = '-1002388694200'; 
+                const fitrockGroupId = '-1002388694200';
                 const encodedAddress = encodeURIComponent(`${data.address}, თბილისი`);
                 const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                const tgText = `🚀 *ახალი შეკვეთა!*\n📦 *პროდუქტი:* ${name}\n📞 *ტელეფონი:* ${data.phone}\n📍 *მისამართი:* ${data.address}\n🗺 [გახსნა რუკაზე](${mapsLink})\n🔗 *წყარო:* ${referrerId}\n🔑 *კოდი:* ${orderCode}`;
+                // All dynamic values are escaped so a stray _ * ` [ in a name,
+                // address or referrer ID can't break Telegram's Markdown parser
+                // and silently drop the whole message.
+                const tgText = `🚀 *ახალი შეკვეთა!*\n📦 *პროდუქტი:* ${escapeMd(name)}\n📞 *ტელეფონი:* ${escapeMd(data.phone)}\n📍 *მისამართი:* ${escapeMd(data.address)}\n🗺 [გახსნა რუკაზე](${mapsLink})\n🔗 *წყარო:* ${escapeMd(referrerId)}\n🔑 *კოდი:* ${orderCode}`;
                 const sendToTelegram = (chatId) => {
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=Markdown&text=${encodeURIComponent(tgText)}`)
-                    .catch(e => console.error("Telegram error:", e));
+                        .then(r => r.json())
+                        .then(res => { if (!res.ok) console.error("Telegram API error:", res); })
+                        .catch(e => console.error("Telegram network error:", e));
                 };
                 sendToTelegram(mainGroupId);
                 if (name.toLowerCase().includes('fitrock')) sendToTelegram(fitrockGroupId);
@@ -300,7 +312,7 @@ async function loadUserOrders(uid) {
         currentUserOrders = [];
         snap.forEach(doc => currentUserOrders.push({ id: doc.id, ...doc.data() }));
         currentUserOrders.sort((a, b) => b.timestamp - a.timestamp);
-        
+
         if (currentUserOrders.length === 0) {
             orderList.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-48 border border-dashed border-white/5 bg-black/20">
@@ -391,5 +403,4 @@ window.handleRegister = async () => {
 
 window.handleLogout = () => signOut(auth).then(() => location.reload());
 window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
-window.toggleAuth = () => { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('register-form').classList.toggle('hidden'); };
-window.scrollToAuth = () => { const sec = document.getElementById('auth-section'); if(sec) sec.classList.remove('hidden'); };
+window.toggleAuth = () => { document.getEl
