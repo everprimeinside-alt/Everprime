@@ -278,29 +278,46 @@ window.order = async (id) => {
                 };
                 await addDoc(collection(db, "orders"), orderInfo);
                 await set(ref(rtdb, 'orders_live/' + user.uid + '_' + Date.now()), orderInfo);
+                
                 const botToken = '8553271170:AAH0KHkLVYREkcuOoafOgeBFc5-m3hCc8xs';
                 const mainGroupId = '-1004329787412';
                 const fitrockGroupId = '-1002388694200';
+                
                 const encodedAddress = encodeURIComponent(`${data.address}, თბილისი`);
                 const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                // All dynamic values are escaped so a stray _ * ` [ in a name,
-                // address or referrer ID can't break Telegram's Markdown parser
-                // and silently drop the whole message.
-                const tgText = `🚀 *ახალი შეკვეთა!*\n📦 *პროდუქტი:* ${escapeMd(name)}\n📞 *ტელეფონი:* ${escapeMd(data.phone)}\n📍 *მისამართი:* ${escapeMd(data.address)}\n🗺 [გახსნა რუკაზე](${mapsLink})\n🔗 *წყარო:* ${escapeMd(referrerId)}\n🔑 *კოდი:* ${orderCode}`;
+                
+                // უსაფრთხო HTML ფორმატირება (აღარ გაფუჭდება რეფერალის ID-ში არსებული სიმბოლოებით)
+                const htmlText = `🚀 <b>ახალი შეკვეთა!</b>\n` +
+                                 `📦 <b>პროდუქტი:</b> ${name}\n` +
+                                 `📞 <b>ტელეფონი:</b> ${data.phone}\n` +
+                                 `📍 <b>მისამართი:</b> ${data.address}\n` +
+                                 `🗺 <a href="${mapsLink}">გახსნა რუკაზე</a>\n` +
+                                 `🔗 <b>წყარო:</b> <code>${referrerId}</code>\n` +
+                                 `🔑 <b>კოდი:</b> <code>#${orderCode}</code>`;
+
                 const sendToTelegram = (chatId) => {
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=Markdown&text=${encodeURIComponent(tgText)}`)
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=HTML&text=${encodeURIComponent(htmlText)}`)
                         .then(r => r.json())
-                        .then(res => { if (!res.ok) console.error("Telegram API error:", res); })
+                        .then(res => { 
+                            if (!res.ok) {
+                                console.error("Telegram API error:", res);
+                            } else {
+                                console.log("Telegram notification sent successfully!");
+                            }
+                        })
                         .catch(e => console.error("Telegram network error:", e));
                 };
+
                 sendToTelegram(mainGroupId);
                 if (name.toLowerCase().includes('fitrock')) sendToTelegram(fitrockGroupId);
+                
                 window.primeShow(`შეკვეთა გაიგზავნა! კოდი: ${orderCode}`);
                 if (user) loadUserOrders(user.uid);
             } catch (innerError) { window.primeShow("შეცდომა: " + innerError.message); }
         });
     } catch (authError) { console.error(authError); }
 };
+
 
 // Load and display user orders in profile dashboard
 async function loadUserOrders(uid) {
