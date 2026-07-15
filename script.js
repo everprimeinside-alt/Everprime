@@ -217,7 +217,8 @@ window.showDetails = (id) => {
                 <div class="flex items-baseline gap-3 mb-4">
                     <span class="text-white font-bold text-3xl">${p.price}₾</span>
                 </div>
-                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6">${p.desc || 'აღწერა არ არის.'}</p>
+                <p class="text-gray-400 text-xs leading-relaxed border-l-2 border-red-600 pl-4 mb-6 whitespace-pre-line">${p.desc || 'აღწერა არ არის.'}</p>
+
                 <div class="flex flex-col gap-2">
                     <button ${inStock ? `onclick="window.order('${p.id}'); window.closeDetails()"` : 'disabled'} class="buy-btn">შეკვეთა</button>
                     <button onclick="window.closeDetails()" class="details-btn">დახურვა</button>
