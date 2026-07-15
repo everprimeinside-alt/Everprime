@@ -25,7 +25,21 @@
         .admin-section.active { display: block; }
         .nav-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
 
-        input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        /* ძველი ვერსია */
+input, textarea, select { 
+    background: rgba(255,255,255,0.05) !important; 
+    border: 1px solid rgba(255,255,255,0.1) !important; 
+    color: white !important; 
+}
+
+/* შეცვალე ამით: */
+input, textarea, select { 
+    background: rgba(255,255,255,0.05) !important; 
+    border: 1px solid rgba(255,255,255,0.1) !important; 
+    color: white !important; 
+    text-transform: none !important; /* ეს ხაზი აიძულებს ბრაუზერს, რომ არ გარდაქმნას ტექსტი uppercase-ად */
+}
+
         input:focus, textarea:focus, select:focus { border-color: #dc2626 !important; outline: none; }
         option { background: #050505; color: white; }
     </style>
