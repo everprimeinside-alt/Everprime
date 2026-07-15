@@ -306,7 +306,7 @@ textarea:focus {
     border-top: none;
 }
 
-/* 3D Geometry Transforms */
+/* 3D Geometry Transforms using fixed pixel calculations for stability across displays */
 .neon-3d-section .item:nth-child(1) { transform: translate(-50%, -50%) rotateY(0deg) translateZ(280px); }
 .neon-3d-section .item:nth-child(2) { transform: translate(-50%, -50%) rotateY(60deg) translateZ(280px); }
 .neon-3d-section .item:nth-child(3) { transform: translate(-50%, -50%) rotateY(120deg) translateZ(280px); }
@@ -343,29 +343,4 @@ textarea:focus {
     .neon-3d-section .item:nth-child(4) { transform: translate(-50%, -50%) rotateY(180deg) translateZ(180px); }
     .neon-3d-section .item:nth-child(5) { transform: translate(-50%, -50%) rotateY(240deg) translateZ(180px); }
     .neon-3d-section .item:nth-child(6) { transform: translate(-50%, -50%) rotateY(300deg) translateZ(180px); }
-}
-
-/* ==========================================================================
-   Dashboard კორექტირება და სქროლი
-   ========================================================================== */
-.custom-dashboard-scroll::-webkit-scrollbar {
-    width: 3px;
-}
-.custom-dashboard-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 0, 0, 0.3);
-}
-.custom-dashboard-scroll::-webkit-scrollbar-thumb:hover {
-    background: #FF0000;
-}
-
-/* დამატებითი ეფექტი შეკვეთის ბარათებისთვის */
-.dashboard-order-item {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    transition: all 0.3s ease;
-}
-.dashboard-order-item:hover {
-    border-color: rgba(255, 0, 0, 0.2);
-    background: rgba(255, 0, 0, 0.02);
-    box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.02);
 }
