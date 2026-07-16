@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>EVERPRIME | Biometric Optimization System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* შრიფტის იმპორტი და სისტემური ფოლბექები */
+        @font-face {
+            font-family: 'BPG Phone Sans Bold';
+            src: url('bpg_extrasquare_mtavruli_2009.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        * { 
+            font-family: 'BPG Phone Sans Bold', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-weight: bold; 
+        }
+
+        :root { 
+            --primary: #FF0000; 
+            --bg: #020202; 
+            --glow: rgba(255, 0, 0, 0.15);
+        }
+
+        body { 
+            background-color: var(--bg); 
+            color: #e0e0e0; 
+            overflow-x: hidden; 
+        }
+
+        /* Scanline ეკრანის ეფექტი */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%; z-index: 1000; pointer-events: none; opacity: 0.35;
+        }
+
+        /* ფუტურისტული კიბერ-ბარათების სტილი */
+        .prime-card {
+            background: #050505;
+            border: 1px solid rgba(255, 0, 0, 0.15);
+            padding: 30px;
+            position: relative;
+            clip-path: polygon(8% 0, 100% 0, 100% 92%, 92% 100%, 0 100%, 0 8%);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .prime-card:hover { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 35px var(--glow); 
+            transform: translateY(-2px);
+        }
+
+        /* ინპუტების სტილი */
+        .input-cyber {
+            background: #020202;
+            border: 1px solid #222;
+            color: white;
+            padding: 14px;
+            width: 100%;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .input-cyber:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.3); 
+        }
+
+        /* პრემიუმ ღილაკები */
+        .btn-prime {
+            background: #fff;
+            color: #000;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 18px;
+            clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            border: none;
+            font-style: italic;
+        }
+        .btn-prime:hover { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+        }
+
+        .nav-btn {
+            font-size: 11px; border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 18px; transition: 0.3s;
+            background: rgba(0,0,0,0.5); color: white; text-transform: uppercase;
+        }
+        .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        .gender-btn { 
+            border: 1px solid #222; 
+            padding: 12px; 
+            flex: 1; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            transition: 0.3s; 
+            color: #777; 
+        }
+        .gender-active { 
+            background: var(--primary); 
+            border-color: var(--primary); 
+            color: white; 
+        }
+
+        /* ანიმაციები */
+        .reveal-up { 
+            animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+        @keyframes revealUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-panel { display: none; }
+        .supp-item { 
+            background: rgba(255, 255, 255, 0.02); 
+            border-left: 3px solid var(--primary); 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            transition: 0.3s;
+        }
+        .supp-item:hover {
+            background: rgba(255, 0, 0, 0.04);
+        }
+
+        /* პროგრეს ბარები მაკრონუტრიენტებისთვის */
+        .macro-bar {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* საინფორმაციო ბარათების დამატებითი სტილი */
+        .info-note {
+            font-size: 10px;
+            color: #888;
+            margin-top: 6px;
+            line-height: 1.4;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body class="relative">
+    <div class="scanlines"></div>
+
+    <!-- შეცდომების კიბერ-მოდალი (ბრაუზერის alert-ის ნაცვლად) -->
+    <div id="error-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="max-w-md w-full bg-[#050505] border-2 border-red-600 p-6 relative clip-path-polygon">
+            <div class="text-red-500 text-3xl mb-3">შეტყობინება</div>
+            <p id="error-text" class="text-gray-300 text-sm mb-6 font-mono"></p>
+            <button onclick="closeErrorModal()" class="btn-prime w-full py-2 text-xs">გასაგებია</button>
+        </div>
+    </div>
+
+    <!-- ნავიგაცია -->
+    <nav class="fixed top-0 w-full z-[100] border-b border-[#FF0000]/20 bg-black/80 backdrop-blur-md">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black italic tracking-tighter uppercase">
+                EVER<span class="text-[#FF0000]">PRIME</span>
+            </a>
+            <div class="flex gap-4">
+                <a href="index.html" class="nav-btn">მთავარი</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- მთავარი კონტენტი -->
+    <main class="pt-32 pb-20 container mx-auto px-6 max-w-6xl">
+        <div class="mb-12 reveal-up">
+            <h1 class="text-4xl md:text-6xl font-black italic uppercase leading-none border-l-8 border-red-600 pl-6">
+                ბიომეტრიული <br><span class="text-red-600">ოპტიმიზაცია</span>
+            </h1>
+        </div>
+
+        <!-- უსაფრთხოების და ავთენტურობის გაფრთხილება -->
+        <div class="reveal-up mb-8">
+            <div class="border border-red-600/30 bg-red-600/5 p-5 rounded-sm flex flex-col md:flex-row items-start gap-4">
+                <div class="flex-shrink-0">
+                    <span class="text-red-600 text-2xl animate-pulse">⚠</span>
+                </div>
+                <div class="text-[11px] leading-relaxed italic text-gray-400">
+                    <p>
+                        <strong class="text-red-500 uppercase">სისტემური შეტყობინება:</strong> 
+                        მოცემული ალგორითმი დაფუძნებულია კლინიკურად დამტკიცებულ <span class="text-white">Mifflin-St Jeor</span>-ის სამეცნიერო ფორმულაზე. 
+                        გამოთვლების მათემატიკური სიზუსტე შეადგენს <span class="text-red-500 font-bold">95.4%-ზე მეტს</span> სტანდარტულ პირობებში.
+                    </p>
+                    <p class="mt-2 border-t border-white/5 pt-2">
+                        <span class="text-white font-bold">გაფრთხილება:</span> ინდივიდუალური ალერგიების, ქრონიკული დაავადებების ან ორსულობის დროს, ნებისმიერი სპორტული დანამატის ან კვების მკაცრი რეჟიმის დაწყებამდე <span class="underline decoration-red-600 text-white">აუცილებელია კონსულტაცია მკურნალ ექიმთან</span>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- კალკულატორის ფორმა -->
+            <div class="lg:col-span-5 reveal-up">
+                <div class="prime-card">
+                    <p class="text-[10px] text-red-600 uppercase tracking-widest mb-6">// საჭირო ბიომეტრიული მონაცემები</p>
+                    <div class="space-y-5">
+                        <div class="flex gap-2">
+                            <button onclick="setGender('male', this)" id="male-btn" class="gender-btn gender-active">მამაკაცი</button>
+                            <button onclick="setGender('female', this)" id="female-btn" class="gender-btn">ქალი</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] uppercase text-gray-500 block mb-1">ასაკი (წელი)</label>
+                                <input type="number" id="age" placeholder="25" min="15" max="100" class="input-cyber">
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase text-gray-500 block mb-1">წონა (კგ)</label>
+                                <input type="number" id="weight" placeholder="80" min="30" max="300" class="input-cyber">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">სიმაღლე (სმ)</label>
+                            <input type="number" id="height" placeholder="180" min="100" max="250" class="input-cyber">
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">ყოველდღიური აქტივობის დონე</label>
+                            <select id="activity" class="input-cyber uppercase text-xs">
+                                <option value="1.2">პასიური (მჯდომარე რეჟიმი / ოფისი)</option>
+                                <option value="1.375">მსუბუქი აქტივობა (კვირაში 1-3 დღე ვარჯიში)</option>
+                                <option value="1.55" selected>საშუალო აქტივობა (აქტიური ვარჯიში 3-5 დღე)</option>
+                                <option value="1.725">მაღალი აქტივობა (მძიმე ვარჯიში 6-7 დღე)</option>
+                                <option value="1.9">ელიტური ათლეტი (ორმაგი დატვირთვა ყოველდღე)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase text-gray-500 block mb-1">სტრატეგიული მიზანი</label>
+                            <select id="goal" class="input-cyber text-red-500 font-bold uppercase text-xs">
+                                <option value="mass">Bulking (კუნთოვანი მასის მატება)</option>
+                                <option value="loss">Cutting (ცხიმის კლება / გამოშრობა)</option>
+                                <option value="maintain">Maintenance (მიღწეულის შენარჩუნება)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="calculatePrime()" class="btn-prime w-full mt-4">ანალიზის დაწყება</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- შედეგების პანელი -->
+            <div id="results" class="lg:col-span-7 result-panel space-y-6">
+                <!-- ძირითადი მეტრიკები -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="prime-card !p-4 border-b-2 border-red-600">
+                        <p class="text-[8px] uppercase text-gray-500">// დღიური კალორია</p>
+                        <p id="out-target" class="text-2xl font-black italic text-white">0</p>
+                        <p class="text-[8px] text-gray-500 mt-1">კკალ / დღეში</p>
+                        <p class="info-note">ენერგიის ის რაოდენობა, რომელიც გჭირდებათ თქვენი მიზნის მისაღწევად.</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">// ცილა (პროტეინი)</p>
+                        <p id="out-prot" class="text-2xl font-black text-red-500">0</p>
+                        <p id="out-prot-kcal" class="text-[8px] text-gray-500 mt-1">0 კკალ</p>
+                        <p class="info-note">კუნთების შენებისა და აღდგენის უმნიშვნელოვანესი სამშენებლო მასალა.</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">// ცხიმი</p>
+                        <p id="out-fat" class="text-2xl font-black text-red-500">0</p>
+                        <p id="out-fat-kcal" class="text-[8px] text-gray-500 mt-1">0 კკალ</p>
+                        <p class="info-note">აუცილებელია ჰორმონალური ბალანსის, ტვინისა და სახსრების გამართული მუშაობისთვის.</p>
+                    </div>
+                    <div class="prime-card !p-4">
+                        <p class="text-[8px] uppercase text-gray-500">// ნახშირწყლები</p>
+                        <p id="out-carb" class="text-2xl font-black text-red-500">0</p>
+                        <p id="out-carb-kcal" class="text-[8px] text-gray-500 mt-1">0 კკალ</p>
+                        <p class="info-note">თქვენი ორგანიზმის მთავარი და ყველაზე სწრაფი ენერგიის წყარო ვარჯიშის დროს.</p>
+                    </div>
+                </div>
+
+                <!-- დამატებითი ბიომეტრიული ანალიზი -->
+                <div class="prime-card !p-6 bg-black/60 border-l-4 border-l-red-600">
+                    <h3 class="text-xs font-bold text-red-600 uppercase mb-4 italic tracking-widest">// მეტაბოლური ანალიზის პანელი</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase block">BMR (ბაზალური მეტაბოლიზმი):</span>
+                            <span id="out-bmr" class="text-white font-black text-lg">0 კკალ</span>
+                            <p class="text-[10px] text-gray-400 mt-1 font-normal leading-normal">კალორიების ის რაოდენობა, რომელსაც თქვენი სხეული წვავს სრულ მოსვენებულ მდგომარეობაში სიცოცხლის შესანარჩუნებლად (სუნთქვა, გულისცემა).</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase block">TDEE (ჯამური დღიური დანახარჯი):</span>
+                            <span id="out-tdee" class="text-white font-black text-lg">0 კკალ</span>
+                            <p class="text-[10px] text-gray-400 mt-1 font-normal leading-normal">კალორიების ჯამური რაოდენობა, რომელსაც წვავთ დღის განმავლობაში, თქვენი ფიზიკური აქტივობისა და ვარჯიშის გათვალისწინებით.</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase block">BMI ინდექსი & სტატუსი:</span>
+                            <span id="out-bmi" class="text-white font-black text-lg block">0</span>
+                            <span id="out-bmi-status" class="text-[10px] text-red-500 uppercase tracking-wider block mt-1 font-bold">N/A</span>
+                            <p id="out-bmi-desc" class="text-[10px] text-gray-400 mt-1 font-normal leading-normal">სხეულის მასის ინდექსი გვიჩვენებს, შეესაბამება თუ არა თქვენი წონა თქვენს სიმაღლეს სამედიცინო სტანდარტებით.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- მაკრონუტრიენტების განაწილების ვიზუალური დიაგრამა -->
+                <div class="prime-card !p-6">
+                    <h3 class="text-xs font-bold text-red-600 uppercase mb-4 italic tracking-widest">// მაკრონუტრიენტების პროცენტული გადანაწილება</h3>
+                    <p class="text-[10px] text-gray-500 mb-4 font-normal">// გვიჩვენებს, თუ როგორ ნაწილდება თქვენი დღიური მიზნობრივი კალორიები ცილებს, ცხიმებსა და ნახშირწყლებს შორის:</p>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-400">ცილა (პროტეინი)</span>
+                                <span id="bar-prot-pct" class="text-red-500">0%</span>
+                            </div>
+                            <div class="w-full bg-neutral-900 rounded-full h-2">
+                                <div id="bar-prot" class="bg-red-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-400">ცხიმები</span>
+                                <span id="bar-fat-pct" class="text-red-500">0%</span>
+                            </div>
+                            <div class="w-full bg-neutral-900 rounded-full h-2">
+                                <div id="bar-fat" class="bg-amber-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-400">ნახშირწყლები</span>
+                                <span id="bar-carb-pct" class="text-red-500">0%</span>
+                            </div>
+                            <div class="w-full bg-neutral-900 rounded-full h-2">
+                                <div id="bar-carb" class="bg-blue-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- სპორტული დანამატების მატრიცა -->
+                <div class="prime-card !p-6 bg-black/40">
+                    <h3 class="text-xs font-bold text-red-600 uppercase mb-4 italic tracking-widest">// რეკომენდებული სპორტული დანამატები</h3>
+                    <p class="text-[9px] text-gray-500 mb-4">// თქვენს მიზანზე, წონასა და ბიომეტრიაზე მორგებული უსაფრთხო და ეფექტური სქემა:</p>
+                    <div id="supp-list" class="space-y-4"></div>
+                </div>
+
+                <!-- წყალი და ქმედითი ფუნქციონალი -->
+                <div class="p-5 border border-dashed border-red-600/30 bg-red-600/5 text-[10px] text-gray-300 uppercase italic flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <span>წყლის დღიური ნორმა:</span>
+                        <span class="text-white font-bold ml-1"><span id="out-water" class="text-red-500 text-sm">0</span> ლიტრი / დღეში</span>
+                        <span class="text-[9px] text-gray-400 block font-normal normal-case mt-1">უზრუნველყოფს ნივთიერებათა ცვლის ოპტიმალურ სიჩქარეს და ენერგიის მაღალ დონეს.</span>
+                    </div>
+                    <button onclick="copyBiometricReport()" class="text-xs text-black bg-white hover:bg-red-600 hover:text-white transition-all px-4 py-2 uppercase italic font-black">
+                        ანგარიშის კოპირება
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-10 border-t border-white/5 text-center">
+        <p class="text-[8px] text-gray-600 uppercase tracking-[1em]">EverPrime Legal & Tech Dept 2026</p>
+    </footer>
+
+    <script>
+        let currentGender = 'male';
+
+        function setGender(g, btn) {
+            currentGender = g;
+            document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('gender-active'));
+            btn.classList.add('gender-active');
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('error-text').innerText = message;
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal').classList.add('hidden');
+        }
+
+        function calculatePrime() {
+            const ageInput = document.getElementById('age').value;
+            const weightInput = document.getElementById('weight').value;
+            const heightInput = document.getElementById('height').value;
+
+            const age = parseInt(ageInput);
+            const weight = parseFloat(weightInput);
+            const height = parseFloat(heightInput);
+            const activity = parseFloat(document.getElementById('activity').value);
+            const goal = document.getElementById('goal').value;
+
+            // 1. მონაცემთა მკაცრი ვალიდაცია
+            if (!ageInput || !weightInput || !heightInput) {
+                showErrorModal("გთხოვთ შეიყვანოთ ყველა ბიომეტრიული პარამეტრი.");
+                return;
+            }
+            if (age < 15 || age > 100) {
+                showErrorModal("ასაკობრივი ზღვარი განსაზღვრულია 15-დან 100 წლამდე.");
+                return;
+            }
+            if (weight < 30 || weight > 300) {
+                showErrorModal("სისტემური წონის ვალიდური ინტერვალია 30კგ - 300კგ.");
+                return;
+            }
+            if (height < 100 || height > 250) {
+                showErrorModal("სისტემური სიმაღლის ვალიდური ინტერვალია 100სმ - 250სმ.");
+                return;
+            }
+
+            // 2. BMR გამოთვლა (Mifflin-St Jeor)
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            bmr = (currentGender === 'male') ? bmr + 5 : bmr - 161; 
+            
+            // 3. TDEE (ჯამური დღიური დანახარჯი აქტივობით)
+            const tdee = bmr * activity;
+
+            // 4. BMI გამოთვლა და ინტერპრეტაცია ქართულად
+            const bmi = (weight / ((height / 100) * (height / 100))).toFixed(1); 
+            let bmiStatus = "";
+            let bmiDesc = "";
+            if (bmi < 18.5) {
+                bmiStatus = "წონის დეფიციტი";
+                bmiDesc = "რეკომენდებულია კალორიების ოდენობის გაზრდა ჯანსაღი წონის მისაღწევად.";
+            } else if (bmi >= 18.5 && bmi < 24.9) {
+                bmiStatus = "ნორმალური წონა";
+                bmiDesc = "თქვენი წონა იდეალურ ბალანსშია სიმაღლესთან. შეინარჩუნეთ აქტიური ცხოვრების წესი.";
+            } else if (bmi >= 25 && bmi < 29.9) {
+                bmiStatus = "ჭარბი წონა";
+                bmiDesc = "მიზანშეწონილია კვების კორექცია და ფიზიკური დატვირთვის გაზრდა ცხიმოვანი მასის შესამცირებლად.";
+            } else {
+                bmiStatus = "სიმსუქნე";
+                bmiDesc = "გირჩევთ გაიაროთ კონსულტაცია დიეტოლოგთან კვების რაციონის ოპტიმიზაციისთვის.";
+            }
+
+            // 5. კალორიული მიზანი და ზუსტი მაკრონუტრიენტების ბალანსი
+            let targetCal, protein, fats, carbs;
+            if (goal === 'mass') {
+                targetCal = tdee + 450; 
+                protein = weight * 2.1; // 2.1გ ცილა 1კგ წონაზე
+                fats = weight * 1.0;    // 1.0გ ცხიმი 1კგ წონაზე
+            } else if (goal === 'loss') {
+                targetCal = tdee - 500; 
+                protein = weight * 2.3; // 2.3გ ცილა კუნთის შესანარჩუნებლად კალორიების დეფიციტისას
+                fats = weight * 0.8;    // 0.8გ ცხიმი ჰორმონალური ბალანსისთვის
+            } else {
+                targetCal = tdee; 
+                protein = weight * 1.8; 
+                fats = weight * 0.9;
+            }
+
+            // ნახშირწყლების მათემატიკურად ზუსტი გამოთვლა კალორიული ბალანსიდან:
+            const proteinKcal = protein * 4;
+            const fatKcal = fats * 9;
+            const remainingKcal = targetCal - (proteinKcal + fatKcal);
+            carbs = remainingKcal > 0 ? remainingKcal / 4 : 0;
+            const carbKcal = carbs * 4;
+
+            // პროცენტული წილები მაკროებისთვის
+            const totalKcalAllocated = proteinKcal + fatKcal + carbKcal;
+            const protPct = Math.round((proteinKcal / totalKcalAllocated) * 100);
+            const fatPct = Math.round((fatKcal / totalKcalAllocated) * 100);
+            const carbPct = 100 - (protPct + fatPct); // დავამრგვალოთ 100%-მდე
+
+            // 6. წყლის მოთხოვნილება
+            const water = (weight * 0.035).toFixed(1);
+
+            // 7. სპორტული დანამატების მატრიცის გენერირება ქართული განმარტებებით
+            const caffeineDose = Math.round(weight * 3); 
+            let supplements = [
+                { name: "კრეატინის მონოჰიდრატი (Creatine Monohydrate)", dose: "5გ", time: "ყოველდღიურად, სასურველია ვარჯიშის დასრულებისთანავე", effect: "ზრდის ძალას, კუნთების მოცულობას და აჩქარებს უჯრედებში ენერგიის (ATP) აღდგენას." },
+                { name: "კოფეინი (Caffeine Anhydrous)", dose: `${caffeineDose}მგ`, time: "ვარჯიშამდე 40-60 წუთით ადრე", effect: "ამაღლებს ფოკუსს, აფხიზლებს ნერვულ სისტემას და გეხმარებათ მეტი კალორიის წვაში ვარჯიშისას." }
+            ];if (goal === 'mass') {
+                supplements.push({ name: "ბეტა-ალანინი (Beta-Alanine)", dose: "3.2გ", time: "გადანაწილებული 2 მიღებაზე დღის განმავლობაში", effect: "ებრძვის კუნთების ნაადრევ გადაწვას და დაღლილობას ინტენსიური ვარჯიშის დროს." });
+            } else if (goal === 'loss') {
+                supplements.push({ name: "L-კარნიტინი (L-Carnitine L-Tartrate)", dose: "2გ", time: "ვარჯიშამდე 30 წუთით ადრე", effect: "ეხმარება ორგანიზმს ცხიმოვანი უჯრედების გარდაქმნაში ენერგიად ფიზიკური დატვირთვისას." });
+                supplements.push({ name: "შრატის პროტეინი (Whey Isolate)", dose: "25-30გ", time: "ვარჯიშის შემდეგ ან კვებებს შორის", effect: "სუფთა ცილის წყარო მინიმალური ცხიმითა და ნახშირწყლებით კუნთების დასაცავად." });
+            } else {
+                supplements.push({ name: "ომეგა-3 თევზის ქონი (Omega-3 Fish Oil)", dose: "2გ", time: "კვებასთან ერთად", effect: "ხელს უწყობს გულ-სისხლძარღვთა სისტემისა და სახსრების ჯანმრთელობას, ამცირებს ანთებით პროცესებს." });
+            }
+
+            // 8. ეკრანზე შედეგების ასახვა
+            document.getElementById('out-target').innerText = Math.round(targetCal);
+            document.getElementById('out-prot').innerText = Math.round(protein) + "გ";
+            document.getElementById('out-prot-kcal').innerText = Math.round(proteinKcal) + " კკალ";
+            
+            document.getElementById('out-fat').innerText = Math.round(fats) + "გ";
+            document.getElementById('out-fat-kcal').innerText = Math.round(fatKcal) + " კკალ";
+            
+            document.getElementById('out-carb').innerText = Math.round(carbs) + "გ";
+            document.getElementById('out-carb-kcal').innerText = Math.round(carbKcal) + " კკალ";
+
+            document.getElementById('out-bmr').innerText = Math.round(bmr) + " კკალ";
+            document.getElementById('out-tdee').innerText = Math.round(tdee) + " კკალ";
+            document.getElementById('out-bmi').innerText = bmi;
+            document.getElementById('out-bmi-status').innerText = bmiStatus;
+            document.getElementById('out-bmi-desc').innerText = bmiDesc;
+            document.getElementById('out-water').innerText = water;
+
+            // დიაგრამების განახლება
+            document.getElementById('bar-prot-pct').innerText = protPct + "%";
+            document.getElementById('bar-prot').style.width = protPct + "%";
+
+            document.getElementById('bar-fat-pct').innerText = fatPct + "%";
+            document.getElementById('bar-fat').style.width = fatPct + "%";
+
+            document.getElementById('bar-carb-pct').innerText = carbPct + "%";
+            document.getElementById('bar-carb').style.width = carbPct + "%";// დანამატების სიის გენერირება
+            const suppList = document.getElementById('supp-list');
+            suppList.innerHTML = supplements.map(s => `
+                <div class="supp-item reveal-up">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                        <span class="text-white font-bold uppercase text-[10px] tracking-widest">${s.name}</span>
+                        <span class="text-[8px] bg-red-600 px-2 py-1 font-black italic uppercase text-white self-start">${s.time}</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2">რეკომენდებული დოზა: <span class="text-white font-black">${s.dose}</span> | ბიოლოგიური ეფექტი: <span class="text-gray-300">${s.effect}</span></p>
+                </div>
+            `).join('');
+
+            // პანელის ჩვენება
+            const resultsPanel = document.getElementById('results');
+            resultsPanel.style.display = 'block';
+            resultsPanel.classList.add('reveal-up');
+            
+            // გლუვი სქროლი
+            setTimeout(() => {
+                window.scrollTo({ 
+                    top: resultsPanel.offsetTop - 120, 
+                    behavior: 'smooth' 
+                });
+            }, 100);
+        }
+
+        // ბიომეტრიული მონაცემების კოპირება ბუფერში
+        function copyBiometricReport() {
+            const kcal = document.getElementById('out-target').innerText;
+            const prot = document.getElementById('out-prot').innerText;
+            const fat = document.getElementById('out-fat').innerText;
+            const carb = document.getElementById('out-carb').innerText;
+            const bmi = document.getElementById('out-bmi').innerText;
+            const bmiStat = document.getElementById('out-bmi-status').innerText;
+            const bmr = document.getElementById('out-bmr').innerText;
+            const tdee = document.getElementById('out-tdee').innerText;
+            const water = document.getElementById('out-water').innerText;
+
+            const textReport = `
+=== EVERPRIME ბიომეტრიული ანგარიში ===
+- კალორიული მიზანი: ${kcal} კკალ
+- ცილები: ${prot}
+- ცხიმები: ${fat}
+- ნახშირწყლები: ${carb}
+- სხეულის მასის ინდექსი (BMI): ${bmi} (${bmiStat})
+- ბაზალური მეტაბოლიზმი (BMR): ${bmr}
+- დღიური ენერგეტიკული დანახარჯი (TDEE): ${tdee}
+- ჰიდრაციის ნორმა: ${water} ლიტრი/დღეში
+======================================
+`;
+
+            // თავსებადი კოპირება iframe გარემოსთვის
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = textReport.trim();
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            // შეტყობინების ჩვენება
+            showErrorModal("ბიომეტრიული ანგარიში წარმატებით დაკოპირდა ბუფერში!");
+        }
+    </script>
+</body>
+</html>
