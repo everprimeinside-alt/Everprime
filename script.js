@@ -217,12 +217,12 @@ window.filterProducts = () => {
                         </div>
                     </div>
                 </div>
-               <!-- პროდუქტის ბარათის ღილაკების სექცია -->
+                           <!-- პროდუქტის ბარათის ღილაკების სექცია -->
 <div class="mt-auto flex flex-col gap-1">
     <div class="grid grid-cols-2 gap-1">
         <button onclick="window.showDetails('${p.id}')" class="details-btn">დეტალები</button>
         <button onclick="window.shareProduct('${p.id}')" class="details-btn flex items-center justify-center gap-1">
-            <span class="material-icons text-xs">share</span> <!-- გაზიარების აიქონი -->
+            <span style="color:red;" class="material-icons text-xxl">share</span> <!-- გაზიარების აიქონი -->
         </button>
     </div>
     <button ${inStock ? `onclick="window.order('${p.id}')"` : 'disabled'} class="buy-btn">
