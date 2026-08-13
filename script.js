@@ -427,7 +427,7 @@ async function loadUserOrders(uid) {
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-mono bg-white/5 border border-white/10 text-gray-300 px-2.5 py-1 uppercase tracking-wider"><span class="text-red-500">#${o.orderCode || 'N/A'}</span>
+                        <span class="text-[10px] font-mono bg-white/5 border border-white/10 text-gray-300 px-2.5 py-1 uppercase tracking-wider"> <span class="text-red-500">#${o.orderCode || 'N/A'}</span>
                         </span>
                     </div>
                 </div>`;
