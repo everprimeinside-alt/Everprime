@@ -119,7 +119,7 @@ onAuthStateChanged(auth, async (user) => {
         if(navUser) {
             navUser.innerHTML = `
                 <button onclick="window.scrollToAuth()" class="nav-btn flex items-center justify-center p-2.5 rounded-none border border-[#FF0000]/40 hover:border-[#FF0000] transition-all bg-black/50 text-white group" title="რეგისტრაცია / შესვლა">
-                    <span class="material-icons text-xl text-[#FF0000] group-hover:scale-110 transition-transform">person_add</span>
+                    <span class="material-icons text-xl text-[#FF0000] group-hover:scale-110 transition-transform">person</span>
                 </button>`;
         }
     }
