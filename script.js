@@ -220,7 +220,7 @@ window.filterProducts = () => {
                         <span class="absolute top-2 left-2 px-2 py-1 text-[8px] font-bold uppercase z-10 ${inStock ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
                             ${inStock ? 'მარაგშია' : 'ამოწურულია'}
                         </span>
-                        <img src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500" onerror="this.src='logo.jpg'">
+                        <img style="border-radius:3px" src="${mainImg}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-all duration-500" onerror="this.src='logo.jpg'">
                     </div>
                     <div class="flex justify-between items-start mb-4">
                         <div>
