@@ -192,7 +192,7 @@ window.filterProducts = () => {
     if(sort === 'low') filtered.sort((a,b) => Number(a.price) - Number(b.price));
     if(sort === 'high') filtered.sort((a,b) => Number(b.price) - Number(a.price));
 
-const itemsPerPage = window.innerWidth < 768 ? 6 : 16;
+const itemsPerPage = window.innerWidth < 768 ? 8 : 16;
 
     const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
     if(currentPage > totalPages) currentPage = totalPages;
